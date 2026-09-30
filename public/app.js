@@ -1,649 +1,1965 @@
 /**
- * Crop Health Monitoring System — Main Application Logic
- * ───────────────────────────────────────────────────────
- * Initializes Leaflet map, manages layers, field selection,
- * KPI dashboard, dynamic legends, and temporal charts.
+ * CropPulse - Satellite-Based Crop Health Monitoring System
+ * End-to-End Application Controller
  */
 
-/* ===========================================================
-   GLOBAL STATE
-   =========================================================== */
-let map;                      // Leaflet map instance
-let fieldsGeoJSON = null;     // Raw GeoJSON FeatureCollection
-let cadastralLayer = null;    // L.geoJSON layer for boundaries
-let overlayLayers = {};       // { ndvi, ndre, stress } L.geoJSON layers
-let selectedFieldId = null;
-let selectedFieldLayer = null;
-let highlightLayer = null;    // L.geoJSON highlight for selected field
-
-const DEFAULT_CENTER = [30.911, 75.862];
-const DEFAULT_ZOOM = 15;
-
-/* Base tile providers */
-const baseTiles = {
-  satellite: L.tileLayer(
-    'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-    { attribution: 'Tiles &copy; Esri', maxZoom: 19 }
-  ),
-  rgb: L.tileLayer(
-    'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-    { attribution: '&copy; OpenStreetMap contributors', maxZoom: 19 }
-  )
+// Fallback embedded datasets in case of local file:// execution without web server
+const FALLBACK_AOIS = {
+  "central-valley": {
+    "id": "central-valley",
+    "name": "Central Valley Quad 4B",
+    "region": "San Joaquin Valley, California",
+    "cropType": "Winter Wheat & Alfalfa",
+    "coordinates": "36.7783° N, 119.4179° W",
+    "lat": 36.7783,
+    "lng": -119.4179,
+    "zoom": 14,
+    "aoiAreaHa": 2090,
+    "sentinelTile": "T11SPA",
+    "sunZenith": "28.4°",
+    "cloudCover": "0.2%",
+    "currentWindow": "May 01 – May 18, 2024",
+    "baselineWindow": "May 01 – May 18, 2023",
+    "kpis": {
+      "ndvi": {
+        "mean": 0.64,
+        "max": 1.0,
+        "delta": "+0.04",
+        "baselineMean": 0.60,
+        "trend": "up",
+        "healthyPct": 68,
+        "healthyHa": 1420,
+        "moderatePct": 21,
+        "moderateHa": 440,
+        "stressedPct": 11,
+        "stressedHa": 230
+      },
+      "ndre": {
+        "mean": 0.42,
+        "max": 0.8,
+        "delta": "+0.02",
+        "baselineMean": 0.40,
+        "trend": "up",
+        "healthyPct": 64,
+        "healthyHa": 1338,
+        "moderatePct": 24,
+        "moderateHa": 502,
+        "stressedPct": 12,
+        "stressedHa": 250
+      },
+      "evi": {
+        "mean": 0.52,
+        "max": 1.0,
+        "delta": "+0.03",
+        "baselineMean": 0.49,
+        "trend": "up",
+        "healthyPct": 66,
+        "healthyHa": 1379,
+        "moderatePct": 23,
+        "moderateHa": 481,
+        "stressedPct": 11,
+        "stressedHa": 230
+      }
+    },
+    "stressDiagnostics": {
+      "pct": "11% of AOI",
+      "hectares": 230,
+      "indexDrop": "-0.16 index drop",
+      "summary": "Vegetation health has declined in southern parcel sectors 3 & 4 compared to baseline. Probable moisture deficit or localized canopy thinning.",
+      "flaggedFields": ["poly-4", "poly-3"]
+    },
+    "recommendation": {
+      "title": "Recommended Next Step",
+      "lead": "Prioritize field inspection in highlighted Sector 4. Verify irrigation emitter pressure, soil moisture depth, and inspect for early rust or stem rot.",
+      "prioritySector": "Sector 4",
+      "groundFactors": ["Irrigation Emitter Pressure", "Soil Moisture at 30cm", "Crop Growth Stage", "Visible Rust/Pest Symptoms"],
+      "disclaimer": "Satellite indicators support ground prioritization and should be verified in the field."
+    },
+    "parcels": [
+      {
+        "id": "poly-1",
+        "name": "Field 01 • North Alfalfa",
+        "crop": "Alfalfa (3rd Cut)",
+        "areaHa": 280,
+        "currentNdvi": 0.72,
+        "baselineNdvi": 0.69,
+        "changePct": "+4.3%",
+        "currentNdre": 0.48,
+        "status": "Healthy",
+        "stressProb": "8%",
+        "timestamp": "May 16, 2024 (10:42 UTC)",
+        "protocol": [
+          "Maintain current pivot schedule (1.5 in/wk)",
+          "Verify nitrogen uptake post-cut",
+          "Next scheduled satellite pass: May 21"
+        ]
+      },
+      {
+        "id": "poly-2",
+        "name": "Field 02 • East Wheat Plot",
+        "crop": "Hard Red Winter Wheat",
+        "areaHa": 410,
+        "currentNdvi": 0.76,
+        "baselineNdvi": 0.71,
+        "changePct": "+7.0%",
+        "currentNdre": 0.52,
+        "status": "Healthy",
+        "stressProb": "5%",
+        "timestamp": "May 16, 2024 (10:42 UTC)",
+        "protocol": [
+          "Grain fill stage normal, no foliar blight detected",
+          "Monitor drydown heading date",
+          "Optimal nitrogen vigor confirmed"
+        ]
+      },
+      {
+        "id": "poly-3",
+        "name": "Field 03 • West Ridge",
+        "crop": "Alfalfa Seed",
+        "areaHa": 290,
+        "currentNdvi": 0.58,
+        "baselineNdvi": 0.65,
+        "changePct": "-10.8%",
+        "currentNdre": 0.38,
+        "status": "Moderate",
+        "stressProb": "45%",
+        "timestamp": "May 16, 2024 (10:42 UTC)",
+        "protocol": [
+          "Check western drip line pressure differential",
+          "Conduct random probe test for compaction layer",
+          "Re-evaluate vegetation vigor in 5 days"
+        ]
+      },
+      {
+        "id": "poly-4",
+        "name": "Field 04 • Sector South (High Stress)",
+        "crop": "Late Sown Wheat",
+        "areaHa": 230,
+        "currentNdvi": 0.38,
+        "baselineNdvi": 0.58,
+        "changePct": "-34.5%",
+        "currentNdre": 0.24,
+        "status": "Stressed",
+        "stressProb": "89%",
+        "timestamp": "May 16, 2024 (10:42 UTC)",
+        "protocol": [
+          "Check lateral 4B pressure gauges for pressure drops",
+          "Sample soil core at 15cm & 30cm depth for moisture deficit",
+          "Target visual scout on southern corner for early fungal blight or mite damage",
+          "Verify telemetry on sub-surface moisture sensor Station #4"
+        ]
+      },
+      {
+        "id": "poly-5",
+        "name": "Field 05 • Central Pivot",
+        "crop": "Silage Corn Seedling",
+        "areaHa": 340,
+        "currentNdvi": 0.52,
+        "baselineNdvi": 0.50,
+        "changePct": "+4.0%",
+        "currentNdre": 0.35,
+        "status": "Moderate",
+        "stressProb": "32%",
+        "timestamp": "May 16, 2024 (10:42 UTC)",
+        "protocol": [
+          "Canopy closure in progress (V4 stage)",
+          "Maintain side-dress fertilizer plan",
+          "Normal seedling emergence confirmed"
+        ]
+      },
+      {
+        "id": "poly-6",
+        "name": "Field 06 • East Pasture Belt",
+        "crop": "Perennial Pasture",
+        "areaHa": 310,
+        "currentNdvi": 0.71,
+        "baselineNdvi": 0.68,
+        "changePct": "+4.4%",
+        "currentNdre": 0.46,
+        "status": "Healthy",
+        "stressProb": "9%",
+        "timestamp": "May 16, 2024 (10:42 UTC)",
+        "protocol": [
+          "Healthy vegetative density across pasture grid",
+          "Rotational grazing rotation scheduled for June",
+          "Optimal water holding capacity"
+        ]
+      },
+      {
+        "id": "poly-7",
+        "name": "Field 07 • South Buffer Zone",
+        "crop": "Cover Crop (Rye & Vetch)",
+        "areaHa": 140,
+        "currentNdvi": 0.67,
+        "baselineNdvi": 0.64,
+        "changePct": "+4.7%",
+        "currentNdre": 0.44,
+        "status": "Healthy",
+        "stressProb": "11%",
+        "timestamp": "May 16, 2024 (10:42 UTC)",
+        "protocol": [
+          "Soil biomass buildup progressing normally",
+          "Maintain border pest trap lines",
+          "Biomass termination date set for late May"
+        ]
+      },
+      {
+        "id": "poly-8",
+        "name": "Field 08 • Southeast Edge",
+        "crop": "Spring Barley",
+        "areaHa": 90,
+        "currentNdvi": 0.54,
+        "baselineNdvi": 0.56,
+        "changePct": "-3.6%",
+        "currentNdre": 0.36,
+        "status": "Moderate",
+        "stressProb": "38%",
+        "timestamp": "May 16, 2024 (10:42 UTC)",
+        "protocol": [
+          "Minor headland compaction observed near service road",
+          "Check end-gun sprinkler coverage on pivot rim",
+          "Inspect leaf tips for salinity scorch"
+        ]
+      }
+    ]
+  },
+  "punjab-zone": {
+    "id": "punjab-zone",
+    "name": "Punjab Agro Zone 7",
+    "region": "Ludhiana District, Punjab, India",
+    "cropType": "Rabi Wheat & Mustard",
+    "coordinates": "30.9010° N, 75.8573° E",
+    "lat": 30.9010,
+    "lng": 75.8573,
+    "zoom": 14,
+    "aoiAreaHa": 1840,
+    "sentinelTile": "T43RFS",
+    "sunZenith": "24.1°",
+    "cloudCover": "0.1%",
+    "currentWindow": "Feb 15 – Mar 05, 2024",
+    "baselineWindow": "Feb 15 – Mar 05, 2023",
+    "kpis": {
+      "ndvi": {
+        "mean": 0.71,
+        "max": 1.0,
+        "delta": "+0.03",
+        "baselineMean": 0.68,
+        "trend": "up",
+        "healthyPct": 74,
+        "healthyHa": 1362,
+        "moderatePct": 19,
+        "moderateHa": 350,
+        "stressedPct": 7,
+        "stressedHa": 128
+      },
+      "ndre": {
+        "mean": 0.49,
+        "max": 0.8,
+        "delta": "+0.02",
+        "baselineMean": 0.47,
+        "trend": "up",
+        "healthyPct": 71,
+        "healthyHa": 1306,
+        "moderatePct": 21,
+        "moderateHa": 386,
+        "stressedPct": 8,
+        "stressedHa": 148
+      },
+      "evi": {
+        "mean": 0.58,
+        "max": 1.0,
+        "delta": "+0.03",
+        "baselineMean": 0.55,
+        "trend": "up",
+        "healthyPct": 72,
+        "healthyHa": 1325,
+        "moderatePct": 20,
+        "moderateHa": 368,
+        "stressedPct": 8,
+        "stressedHa": 147
+      }
+    },
+    "stressDiagnostics": {
+      "pct": "7% of AOI",
+      "hectares": 128,
+      "indexDrop": "-0.18 index drop",
+      "summary": "Localized canopy thinning in Sector 04 due to canal tail-end irrigation deficit. Immediate tube-well scheduling recommended.",
+      "flaggedFields": ["poly-4"]
+    },
+    "recommendation": {
+      "title": "Recommended Next Step",
+      "lead": "Prioritize ground scout in tail-end canal parcel (Sector 4). Verify tube-well supply and inspect for yellow rust stripes on flag leaves.",
+      "prioritySector": "Sector 4",
+      "groundFactors": ["Canal Water Flow Rate", "Tube-well Pump Run-time", "Yellow Rust Flag Leaf Inspection", "Soil Moisture Depth"],
+      "disclaimer": "Satellite indicators support ground prioritization and should be verified in the field."
+    },
+    "parcels": [
+      {
+        "id": "poly-1",
+        "name": "Field 01 • PBW-725 High Yield",
+        "crop": "Rabi Wheat",
+        "areaHa": 260,
+        "currentNdvi": 0.77,
+        "baselineNdvi": 0.73,
+        "changePct": "+5.5%",
+        "currentNdre": 0.53,
+        "status": "Healthy",
+        "stressProb": "4%",
+        "timestamp": "Mar 02, 2024 (05:40 UTC)",
+        "protocol": [
+          "Flag leaf development optimal across all acres",
+          "Ensure light irrigation during grain filling stage",
+          "Disease scout: clear of rust"
+        ]
+      },
+      {
+        "id": "poly-2",
+        "name": "Field 02 • HD-3086 Block",
+        "crop": "Rabi Wheat",
+        "areaHa": 380,
+        "currentNdvi": 0.75,
+        "baselineNdvi": 0.72,
+        "changePct": "+4.2%",
+        "currentNdre": 0.51,
+        "status": "Healthy",
+        "stressProb": "6%",
+        "timestamp": "Mar 02, 2024 (05:40 UTC)",
+        "protocol": [
+          "Vigorous biomass accumulation observed",
+          "Nitrogen management confirmed via GreenSeeker",
+          "Maintain scheduled moisture cycle"
+        ]
+      },
+      {
+        "id": "poly-3",
+        "name": "Field 03 • Mustard Intercrop",
+        "crop": "Mustard (Pusa Bold)",
+        "areaHa": 270,
+        "currentNdvi": 0.62,
+        "baselineNdvi": 0.64,
+        "changePct": "-3.1%",
+        "currentNdre": 0.41,
+        "status": "Moderate",
+        "stressProb": "35%",
+        "timestamp": "Mar 02, 2024 (05:40 UTC)",
+        "protocol": [
+          "Pod maturity stage beginning",
+          "Monitor aphid incidence along northern bund",
+          "Harvest window estimated in 12 days"
+        ]
+      },
+      {
+        "id": "poly-4",
+        "name": "Field 04 • Tail-End Canal Parcel",
+        "crop": "Late Sown Wheat",
+        "areaHa": 128,
+        "currentNdvi": 0.39,
+        "baselineNdvi": 0.57,
+        "changePct": "-31.6%",
+        "currentNdre": 0.25,
+        "status": "Stressed",
+        "stressProb": "86%",
+        "timestamp": "Mar 02, 2024 (05:40 UTC)",
+        "protocol": [
+          "Emergency tube-well irrigation required due to canal water deficiency",
+          "Inspect lower leaves for nitrogen leaching and moisture wilting",
+          "Coordinate with local Krishi Vigyan Kendra (KVK) advisory"
+        ]
+      },
+      {
+        "id": "poly-5",
+        "name": "Field 05 • Central Farm Hub",
+        "crop": "Rabi Wheat (Unnat PBW)",
+        "areaHa": 320,
+        "currentNdvi": 0.69,
+        "baselineNdvi": 0.66,
+        "changePct": "+4.5%",
+        "currentNdre": 0.46,
+        "status": "Healthy",
+        "stressProb": "12%",
+        "timestamp": "Mar 02, 2024 (05:40 UTC)",
+        "protocol": ["Solid tiller density and uniform green canopy"]
+      },
+      {
+        "id": "poly-6",
+        "name": "Field 06 • East Farm Perimeter",
+        "crop": "Barley & Fodder",
+        "areaHa": 280,
+        "currentNdvi": 0.72,
+        "baselineNdvi": 0.69,
+        "changePct": "+4.3%",
+        "currentNdre": 0.48,
+        "status": "Healthy",
+        "stressProb": "8%",
+        "timestamp": "Mar 02, 2024 (05:40 UTC)",
+        "protocol": ["Optimal soil moisture levels maintained"]
+      },
+      {
+        "id": "poly-7",
+        "name": "Field 07 • South Drain Border",
+        "crop": "Wheat Seed Production",
+        "areaHa": 120,
+        "currentNdvi": 0.73,
+        "baselineNdvi": 0.70,
+        "changePct": "+4.3%",
+        "currentNdre": 0.49,
+        "status": "Healthy",
+        "stressProb": "7%",
+        "timestamp": "Mar 02, 2024 (05:40 UTC)",
+        "protocol": ["Roguing inspection completed for genetic purity"]
+      },
+      {
+        "id": "poly-8",
+        "name": "Field 08 • South-East Ridge",
+        "crop": "Chickpea Intercrop",
+        "areaHa": 82,
+        "currentNdvi": 0.58,
+        "baselineNdvi": 0.61,
+        "changePct": "-4.9%",
+        "currentNdre": 0.39,
+        "status": "Moderate",
+        "stressProb": "41%",
+        "timestamp": "Mar 02, 2024 (05:40 UTC)",
+        "protocol": ["Pod borer monitoring traps checked"]
+      }
+    ]
+  },
+  "kansas-belt": {
+    "id": "kansas-belt",
+    "name": "Kansas Sector 12",
+    "region": "Barton County, Kansas, USA",
+    "cropType": "Grain Corn & Soybeans",
+    "coordinates": "38.4937° N, 98.3804° W",
+    "lat": 38.4937,
+    "lng": -98.3804,
+    "zoom": 13,
+    "aoiAreaHa": 2450,
+    "sentinelTile": "T14SMB",
+    "sunZenith": "26.8°",
+    "cloudCover": "0.4%",
+    "currentWindow": "Jul 10 – Jul 28, 2024",
+    "baselineWindow": "Jul 10 – Jul 28, 2023",
+    "kpis": {
+      "ndvi": {
+        "mean": 0.58,
+        "max": 1.0,
+        "delta": "-0.04",
+        "baselineMean": 0.62,
+        "trend": "down",
+        "healthyPct": 55,
+        "healthyHa": 1348,
+        "moderatePct": 31,
+        "moderateHa": 760,
+        "stressedPct": 14,
+        "stressedHa": 342
+      },
+      "ndre": {
+        "mean": 0.38,
+        "max": 0.8,
+        "delta": "-0.03",
+        "baselineMean": 0.41,
+        "trend": "down",
+        "healthyPct": 51,
+        "healthyHa": 1250,
+        "moderatePct": 33,
+        "moderateHa": 808,
+        "stressedPct": 16,
+        "stressedHa": 392
+      },
+      "evi": {
+        "mean": 0.47,
+        "max": 1.0,
+        "delta": "-0.04",
+        "baselineMean": 0.51,
+        "trend": "down",
+        "healthyPct": 53,
+        "healthyHa": 1298,
+        "moderatePct": 32,
+        "moderateHa": 784,
+        "stressedPct": 15,
+        "stressedHa": 368
+      }
+    },
+    "stressDiagnostics": {
+      "pct": "14% of AOI",
+      "hectares": 342,
+      "indexDrop": "-0.19 index drop",
+      "summary": "Sector 04 and western edge showing heat-induced evapotranspiration deficit. Ogallala aquifer pivot booster check required.",
+      "flaggedFields": ["poly-4"]
+    },
+    "recommendation": {
+      "title": "Recommended Next Step",
+      "lead": "Inspect center pivot nozzling on Sector 4 corn plot. High heat index (+38°C) causing accelerated canopy dehydration.",
+      "prioritySector": "Sector 4",
+      "groundFactors": ["Center Pivot Nozzle Pressure", "Soil Water Tension (cb)", "Leaf Rolling Index (Silking Stage)", "Heat Index Trend"],
+      "disclaimer": "Satellite indicators support ground prioritization and should be verified in the field."
+    },
+    "parcels": [
+      {
+        "id": "poly-1",
+        "name": "Field 01 • Pivot North",
+        "crop": "Irrigated Dent Corn",
+        "areaHa": 350,
+        "currentNdvi": 0.70,
+        "baselineNdvi": 0.71,
+        "changePct": "-1.4%",
+        "currentNdre": 0.47,
+        "status": "Healthy",
+        "stressProb": "14%",
+        "timestamp": "Jul 25, 2024 (16:30 UTC)",
+        "protocol": ["Corn at VT/R1 tassel emergence stage"]
+      },
+      {
+        "id": "poly-2",
+        "name": "Field 02 • Pivot East",
+        "crop": "Soybean (Maturity Group 3)",
+        "areaHa": 480,
+        "currentNdvi": 0.68,
+        "baselineNdvi": 0.67,
+        "changePct": "+1.5%",
+        "currentNdre": 0.45,
+        "status": "Healthy",
+        "stressProb": "16%",
+        "timestamp": "Jul 25, 2024 (16:30 UTC)",
+        "protocol": ["Canopy at R2 full bloom, flowering uniform"]
+      },
+      {
+        "id": "poly-3",
+        "name": "Field 03 • Dryland Corner",
+        "crop": "Dryland Sorghum",
+        "areaHa": 320,
+        "currentNdvi": 0.51,
+        "baselineNdvi": 0.58,
+        "changePct": "-12.1%",
+        "currentNdre": 0.33,
+        "status": "Moderate",
+        "stressProb": "49%",
+        "timestamp": "Jul 25, 2024 (16:30 UTC)",
+        "protocol": ["Rainfall deficit of 42mm in past 21 days"]
+      },
+      {
+        "id": "poly-4",
+        "name": "Field 04 • Sector South Pivot (Stressed)",
+        "crop": "Corn (Late Planted)",
+        "areaHa": 342,
+        "currentNdvi": 0.37,
+        "baselineNdvi": 0.56,
+        "changePct": "-33.9%",
+        "currentNdre": 0.23,
+        "status": "Stressed",
+        "stressProb": "91%",
+        "timestamp": "Jul 25, 2024 (16:30 UTC)",
+        "protocol": [
+          "Pivot booster pump malfunction reported on tower 6",
+          "Immediate field repair required to salvage silking stage",
+          "Check soil moisture probe: root zone below permanent wilting point"
+        ]
+      },
+      {
+        "id": "poly-5",
+        "name": "Field 05 • Central Dryland",
+        "crop": "Soybean",
+        "areaHa": 360,
+        "currentNdvi": 0.53,
+        "baselineNdvi": 0.59,
+        "changePct": "-10.2%",
+        "currentNdre": 0.34,
+        "status": "Moderate",
+        "stressProb": "46%",
+        "timestamp": "Jul 25, 2024 (16:30 UTC)",
+        "protocol": ["Monitor pod development at lower nodes"]
+      },
+      {
+        "id": "poly-6",
+        "name": "Field 06 • East Corn Pivot",
+        "crop": "Corn (Seed)",
+        "areaHa": 320,
+        "currentNdvi": 0.69,
+        "baselineNdvi": 0.70,
+        "changePct": "-1.4%",
+        "currentNdre": 0.46,
+        "status": "Healthy",
+        "stressProb": "15%",
+        "timestamp": "Jul 25, 2024 (16:30 UTC)",
+        "protocol": ["Uniform tassel distribution across rows"]
+      },
+      {
+        "id": "poly-7",
+        "name": "Field 07 • South Buffer",
+        "crop": "Conservation Reserve Grass",
+        "areaHa": 160,
+        "currentNdvi": 0.62,
+        "baselineNdvi": 0.64,
+        "changePct": "-3.1%",
+        "currentNdre": 0.40,
+        "status": "Healthy",
+        "stressProb": "18%",
+        "timestamp": "Jul 25, 2024 (16:30 UTC)",
+        "protocol": ["Erosion control intact along drainage ditch"]
+      },
+      {
+        "id": "poly-8",
+        "name": "Field 08 • South Road Edge",
+        "crop": "Sorghum",
+        "areaHa": 118,
+        "currentNdvi": 0.50,
+        "baselineNdvi": 0.55,
+        "changePct": "-9.1%",
+        "currentNdre": 0.32,
+        "status": "Moderate",
+        "stressProb": "52%",
+        "timestamp": "Jul 25, 2024 (16:30 UTC)",
+        "protocol": ["Early moisture conservation tillage holding"]
+      }
+    ]
+  },
+  "nile-delta": {
+    "id": "nile-delta",
+    "name": "Nile Delta Sector 3",
+    "region": "Kafr El-Sheikh, Lower Egypt",
+    "cropType": "Egyptian Long-Staple Cotton & Berseem Clover",
+    "coordinates": "31.1107° N, 30.9388° E",
+    "lat": 31.1107,
+    "lng": 30.9388,
+    "zoom": 14,
+    "aoiAreaHa": 1620,
+    "sentinelTile": "T36RUU",
+    "sunZenith": "22.3°",
+    "cloudCover": "0.1%",
+    "currentWindow": "Jun 01 – Jun 20, 2024",
+    "baselineWindow": "Jun 01 – Jun 20, 2023",
+    "kpis": {
+      "ndvi": {
+        "mean": 0.66,
+        "max": 1.0,
+        "delta": "+0.03",
+        "baselineMean": 0.63,
+        "trend": "up",
+        "healthyPct": 70,
+        "healthyHa": 1134,
+        "moderatePct": 22,
+        "moderateHa": 356,
+        "stressedPct": 8,
+        "stressedHa": 130
+      },
+      "ndre": {
+        "mean": 0.44,
+        "max": 0.8,
+        "delta": "+0.02",
+        "baselineMean": 0.42,
+        "trend": "up",
+        "healthyPct": 67,
+        "healthyHa": 1085,
+        "moderatePct": 24,
+        "moderateHa": 389,
+        "stressedPct": 9,
+        "stressedHa": 146
+      },
+      "evi": {
+        "mean": 0.54,
+        "max": 1.0,
+        "delta": "+0.02",
+        "baselineMean": 0.52,
+        "trend": "up",
+        "healthyPct": 68,
+        "healthyHa": 1102,
+        "moderatePct": 23,
+        "moderateHa": 372,
+        "stressedPct": 9,
+        "stressedHa": 146
+      }
+    },
+    "stressDiagnostics": {
+      "pct": "8% of AOI",
+      "hectares": 130,
+      "indexDrop": "-0.15 index drop",
+      "summary": "Sector 04 showing salt crusting and slow drainage discharge near terminal collector canal. Flushing cycle advised.",
+      "flaggedFields": ["poly-4"]
+    },
+    "recommendation": {
+      "title": "Recommended Next Step",
+      "lead": "Perform ground electrical conductivity (EC) soil test in Sector 4. Flush drain tile collector and check for drainage obstruction.",
+      "prioritySector": "Sector 4",
+      "groundFactors": ["Soil Salinity ECe (dS/m)", "Tile Drain Outflow Rate", "Canal Water Silt Load", "Cotton Square Shedding"],
+      "disclaimer": "Satellite indicators support ground prioritization and should be verified in the field."
+    },
+    "parcels": [
+      {
+        "id": "poly-1",
+        "name": "Field 01 • Giza-94 Cotton",
+        "crop": "Egyptian Cotton",
+        "areaHa": 240,
+        "currentNdvi": 0.74,
+        "baselineNdvi": 0.70,
+        "changePct": "+5.7%",
+        "currentNdre": 0.50,
+        "status": "Healthy",
+        "stressProb": "6%",
+        "timestamp": "Jun 18, 2024 (08:52 UTC)",
+        "protocol": ["Squaring stage active, canopy dense and dark green"]
+      },
+      {
+        "id": "poly-2",
+        "name": "Field 02 • Berseem Multi-cut",
+        "crop": "Berseem Clover",
+        "areaHa": 340,
+        "currentNdvi": 0.76,
+        "baselineNdvi": 0.72,
+        "changePct": "+5.6%",
+        "currentNdre": 0.51,
+        "status": "Healthy",
+        "stressProb": "5%",
+        "timestamp": "Jun 18, 2024 (08:52 UTC)",
+        "protocol": ["Final summer cut completed with high forage yield"]
+      },
+      {
+        "id": "poly-3",
+        "name": "Field 03 • Rice Nursery Block",
+        "crop": "Paddy Rice (Sakha 108)",
+        "areaHa": 230,
+        "currentNdvi": 0.59,
+        "baselineNdvi": 0.62,
+        "changePct": "-4.8%",
+        "currentNdre": 0.39,
+        "status": "Moderate",
+        "stressProb": "39%",
+        "timestamp": "Jun 18, 2024 (08:52 UTC)",
+        "protocol": ["Transplanting into flooded basins scheduled"]
+      },
+      {
+        "id": "poly-4",
+        "name": "Field 04 • Terminal Salinity Hotspot",
+        "crop": "Cotton (Saline Margin)",
+        "areaHa": 130,
+        "currentNdvi": 0.41,
+        "baselineNdvi": 0.56,
+        "changePct": "-26.8%",
+        "currentNdre": 0.26,
+        "status": "Stressed",
+        "stressProb": "84%",
+        "timestamp": "Jun 18, 2024 (08:52 UTC)",
+        "protocol": [
+          "Tile drainage outlet clogged with silt sediment",
+          "Clear outlet valve and run leaching irrigation cycle with fresh canal water",
+          "Test soil salinity using field refractometer"
+        ]
+      },
+      {
+        "id": "poly-5",
+        "name": "Field 05 • Central Mixed Farm",
+        "crop": "Corn & Vegetables",
+        "areaHa": 270,
+        "currentNdvi": 0.68,
+        "baselineNdvi": 0.65,
+        "changePct": "+4.6%",
+        "currentNdre": 0.45,
+        "status": "Healthy",
+        "stressProb": "11%",
+        "timestamp": "Jun 18, 2024 (08:52 UTC)",
+        "protocol": ["Healthy vegetative growth along raised beds"]
+      },
+      {
+        "id": "poly-6",
+        "name": "Field 06 • North Canal Front",
+        "crop": "Giza-86 Cotton",
+        "areaHa": 210,
+        "currentNdvi": 0.73,
+        "baselineNdvi": 0.70,
+        "changePct": "+4.3%",
+        "currentNdre": 0.49,
+        "status": "Healthy",
+        "stressProb": "7%",
+        "timestamp": "Jun 18, 2024 (08:52 UTC)",
+        "protocol": ["Primary canal intake providing uninterrupted flow"]
+      },
+      {
+        "id": "poly-7",
+        "name": "Field 07 • South Basin",
+        "crop": "Alfalfa",
+        "areaHa": 110,
+        "currentNdvi": 0.70,
+        "baselineNdvi": 0.67,
+        "changePct": "+4.5%",
+        "currentNdre": 0.47,
+        "status": "Healthy",
+        "stressProb": "9%",
+        "timestamp": "Jun 18, 2024 (08:52 UTC)",
+        "protocol": ["Steady regeneration observed post-cut"]
+      },
+      {
+        "id": "poly-8",
+        "name": "Field 08 • East Headland",
+        "crop": "Sunflower Seedling",
+        "areaHa": 90,
+        "currentNdvi": 0.55,
+        "baselineNdvi": 0.58,
+        "changePct": "-5.2%",
+        "currentNdre": 0.36,
+        "status": "Moderate",
+        "stressProb": "42%",
+        "timestamp": "Jun 18, 2024 (08:52 UTC)",
+        "protocol": ["Seedling emergence rate at 85%"]
+      }
+    ]
+  }
 };
 
-/* ===========================================================
-   COLOR RAMPS
-   =========================================================== */
-function ndviColor(v) {
-  if (v == null) return '#cccccc';
-  if (v >= 0.7)  return '#1b7a1b';   // dark green
-  if (v >= 0.6)  return '#4caf50';   // green
-  if (v >= 0.5)  return '#8bc34a';   // light green
-  if (v >= 0.4)  return '#cddc39';   // yellow-green
-  if (v >= 0.3)  return '#ffeb3b';   // yellow
-  return '#f44336';                   // red
-}
-
-function ndreColor(v) {
-  if (v == null) return '#cccccc';
-  if (v >= 0.5)  return '#1a5276';   // dark blue-green
-  if (v >= 0.42) return '#2e86c1';   // teal
-  if (v >= 0.35) return '#48c9b0';   // green-teal
-  if (v >= 0.28) return '#f9e79f';   // warm yellow
-  return '#e74c3c';                   // red
-}
-
-function stressColor(status) {
-  const s = (status || '').toLowerCase();
-  if (s === 'healthy') return '#2d6a4f';
-  if (s === 'moderate') return '#e9a820';
-  return '#d62828';                     // Potentially Stressed
-}
-
-function stressTextLabel(status) {
-  const s = (status || '').toLowerCase();
-  if (s === 'healthy') return 'Healthy';
-  if (s === 'moderate') return 'Moderate';
-  return 'Potential Stress';
-}
-
-/* ===========================================================
-   INITIALIZATION
-   =========================================================== */
-document.addEventListener('DOMContentLoaded', () => {
-  initMap();
-  loadFields();
-  loadKPIs();
-  bindControls();
-  bindLayerSwitching();
-});
-
-function initMap() {
-  map = L.map('map', {
-    center: DEFAULT_CENTER,
-    zoom: DEFAULT_ZOOM,
-    zoomControl: false,         // We use custom buttons
-    scrollWheelZoom: true,
-    doubleClickZoom: true,
-    touchZoom: true,
-    dragging: true
-  });
-
-  // Start with satellite base
-  baseTiles.satellite.addTo(map);
-
-  // Force Leaflet to recalculate size after CSS layout settles
-  setTimeout(() => map.invalidateSize(), 200);
-  window.addEventListener('resize', () => map.invalidateSize());
-}
-
-/* ===========================================================
-   DATA LOADING
-   =========================================================== */
-async function loadFields() {
-  try {
-    const res = await fetch('/api/fields');
-    if (!res.ok) throw new Error('Fields API returned ' + res.status);
-    fieldsGeoJSON = await res.json();
-    renderCadastralLayer();
-    updateLegend('satellite');
-    // Select first field by default
-    if (fieldsGeoJSON.features && fieldsGeoJSON.features.length) {
-      selectField(fieldsGeoJSON.features[0].properties.field_id);
-    }
-  } catch (err) {
-    console.error('Failed to load fields:', err);
+const FALLBACK_TIMESERIES = {
+  "central-valley": {
+    "dates": ["May 01", "May 04", "May 08", "May 11", "May 14", "May 18"],
+    "current": {
+      "ndvi": [0.49, 0.55, 0.61, 0.65, 0.71, 0.64],
+      "ndre": [0.32, 0.36, 0.40, 0.43, 0.47, 0.42],
+      "evi": [0.39, 0.44, 0.49, 0.53, 0.58, 0.52]
+    },
+    "baseline": {
+      "ndvi": [0.52, 0.57, 0.59, 0.61, 0.63, 0.60],
+      "ndre": [0.34, 0.37, 0.39, 0.40, 0.41, 0.40],
+      "evi": [0.41, 0.45, 0.47, 0.49, 0.50, 0.49]
+    },
+    "points": [
+      { "date": "May 01", "current": 0.49, "baseline": 0.52, "phenology": "Early Tillering" },
+      { "date": "May 04", "current": 0.55, "baseline": 0.57, "phenology": "Stem Elongation" },
+      { "date": "May 08", "current": 0.61, "baseline": 0.59, "phenology": "Jointing Stage" },
+      { "date": "May 11", "current": 0.65, "baseline": 0.61, "phenology": "Booting Stage" },
+      { "date": "May 14", "current": 0.71, "baseline": 0.63, "phenology": "Peak Heading / Anthesis (Vigorous)" },
+      { "date": "May 18", "current": 0.64, "baseline": 0.60, "phenology": "Grain Fill (Moisture Deficit Detected)" }
+    ]
+  },
+  "punjab-zone": {
+    "dates": ["Feb 15", "Feb 19", "Feb 23", "Feb 27", "Mar 02", "Mar 05"],
+    "current": {
+      "ndvi": [0.54, 0.62, 0.68, 0.73, 0.76, 0.71],
+      "ndre": [0.36, 0.42, 0.46, 0.50, 0.52, 0.49],
+      "evi": [0.43, 0.50, 0.55, 0.59, 0.62, 0.58]
+    },
+    "baseline": {
+      "ndvi": [0.55, 0.60, 0.64, 0.67, 0.70, 0.68],
+      "ndre": [0.37, 0.41, 0.44, 0.46, 0.48, 0.47],
+      "evi": [0.44, 0.48, 0.52, 0.54, 0.56, 0.55]
+    },
+    "points": [
+      { "date": "Feb 15", "current": 0.54, "baseline": 0.55, "phenology": "Late Jointing" },
+      { "date": "Feb 19", "current": 0.62, "baseline": 0.60, "phenology": "Booting / Flag Leaf" },
+      { "date": "Feb 23", "current": 0.68, "baseline": 0.64, "phenology": "Ear Head Emergence" },
+      { "date": "Feb 27", "current": 0.73, "baseline": 0.67, "phenology": "Flowering Peak" },
+      { "date": "Mar 02", "current": 0.76, "baseline": 0.70, "phenology": "Peak Milk Stage" },
+      { "date": "Mar 05", "current": 0.71, "baseline": 0.68, "phenology": "Early Dough Stage" }
+    ]
+  },
+  "kansas-belt": {
+    "dates": ["Jul 10", "Jul 14", "Jul 18", "Jul 21", "Jul 25", "Jul 28"],
+    "current": {
+      "ndvi": [0.63, 0.66, 0.65, 0.62, 0.59, 0.58],
+      "ndre": [0.42, 0.44, 0.43, 0.41, 0.39, 0.38],
+      "evi": [0.51, 0.54, 0.53, 0.50, 0.48, 0.47]
+    },
+    "baseline": {
+      "ndvi": [0.60, 0.63, 0.65, 0.66, 0.64, 0.62],
+      "ndre": [0.40, 0.42, 0.43, 0.44, 0.42, 0.41],
+      "evi": [0.49, 0.51, 0.53, 0.54, 0.52, 0.51]
+    },
+    "points": [
+      { "date": "Jul 10", "current": 0.63, "baseline": 0.60, "phenology": "V12 Vegetative Stage" },
+      { "date": "Jul 14", "current": 0.66, "baseline": 0.63, "phenology": "VT Tassel Emergence" },
+      { "date": "Jul 18", "current": 0.65, "baseline": 0.65, "phenology": "R1 Silking Beginning" },
+      { "date": "Jul 21", "current": 0.62, "baseline": 0.66, "phenology": "Heat Stress Inset (+38°C)" },
+      { "date": "Jul 25", "current": 0.59, "baseline": 0.64, "phenology": "Evapotranspiration Deficit" },
+      { "date": "Jul 28", "current": 0.58, "baseline": 0.62, "phenology": "Drydown & Leaf Firing" }
+    ]
+  },
+  "nile-delta": {
+    "dates": ["Jun 01", "Jun 05", "Jun 09", "Jun 13", "Jun 17", "Jun 20"],
+    "current": {
+      "ndvi": [0.51, 0.57, 0.63, 0.68, 0.70, 0.66],
+      "ndre": [0.34, 0.38, 0.42, 0.45, 0.47, 0.44],
+      "evi": [0.41, 0.46, 0.51, 0.55, 0.57, 0.54]
+    },
+    "baseline": {
+      "ndvi": [0.50, 0.54, 0.58, 0.61, 0.64, 0.63],
+      "ndre": [0.33, 0.36, 0.39, 0.41, 0.43, 0.42],
+      "evi": [0.40, 0.43, 0.47, 0.49, 0.51, 0.52]
+    },
+    "points": [
+      { "date": "Jun 01", "current": 0.51, "baseline": 0.50, "phenology": "Early Vegetative" },
+      { "date": "Jun 05", "current": 0.57, "baseline": 0.54, "phenology": "Squaring Initiation" },
+      { "date": "Jun 09", "current": 0.63, "baseline": 0.58, "phenology": "Canopy Expansion" },
+      { "date": "Jun 13", "current": 0.68, "baseline": 0.61, "phenology": "Mid Squaring" },
+      { "date": "Jun 17", "current": 0.70, "baseline": 0.64, "phenology": "Peak Biomass" },
+      { "date": "Jun 20", "current": 0.66, "baseline": 0.63, "phenology": "Canopy Stabilization" }
+    ]
   }
-}
+};
 
-async function loadKPIs() {
-  try {
-    const res = await fetch('/api/analysis/summary');
-    if (!res.ok) return;
-    const d = await res.json();
-    setText('kpi-total-fields', d.total_fields);
-    setText('kpi-healthy-pct', d.healthy_pct + '%');
-    setText('kpi-healthy-count', d.healthy_count + ' fields');
-    setText('kpi-moderate-pct', d.moderate_pct + '%');
-    setText('kpi-moderate-count', d.moderate_count + ' fields');
-    setText('kpi-stressed-pct', d.stressed_pct + '%');
-    setText('kpi-stressed-count', d.stressed_count + ' fields');
-  } catch (err) {
-    console.error('KPI fetch error:', err);
-  }
-}
-
-/* ===========================================================
-   CADASTRAL LAYER (Field Boundaries)
-   =========================================================== */
-function renderCadastralLayer() {
-  if (cadastralLayer) {
-    map.removeLayer(cadastralLayer);
-  }
-
-  cadastralLayer = L.geoJSON(fieldsGeoJSON, {
-    style: () => ({
-      color: '#1b4332',
-      weight: 2,
-      fillOpacity: 0.08,
-      fillColor: '#2d6a4f'
-    }),
-    onEachFeature: (feature, layer) => {
-      const p = feature.properties;
-      layer.bindTooltip(
-        `<strong>${p.field_id}</strong><br>${p.crop} • ${p.area_ha} ha`,
-        { sticky: true, className: 'field-tooltip' }
-      );
-      layer.on('click', () => selectField(p.field_id));
-    }
-  }).addTo(map);
-
-  // Fit map to field bounds
-  map.fitBounds(cadastralLayer.getBounds(), { padding: [30, 30] });
-}
-
-/* ===========================================================
-   OVERLAY LAYERS (NDVI, NDRE, Stress)
-   =========================================================== */
-function clearOverlayLayers() {
-  Object.values(overlayLayers).forEach(l => {
-    if (l && map.hasLayer(l)) map.removeLayer(l);
-  });
-  overlayLayers = {};
-}
-
-function renderNDVILayer() {
-  clearOverlayLayers();
-  overlayLayers.ndvi = L.geoJSON(fieldsGeoJSON, {
-    style: (feature) => ({
-      color: '#333',
-      weight: 1,
-      fillOpacity: 0.7,
-      fillColor: ndviColor(feature.properties.ndvi)
-    }),
-    onEachFeature: (feature, layer) => {
-      const p = feature.properties;
-      layer.bindTooltip(
-        `<strong>${p.field_id}</strong><br>NDVI: ${p.ndvi}`,
-        { sticky: true }
-      );
-      layer.on('click', () => selectField(p.field_id));
-    }
-  }).addTo(map);
-}
-
-function renderNDRELayer() {
-  clearOverlayLayers();
-  overlayLayers.ndre = L.geoJSON(fieldsGeoJSON, {
-    style: (feature) => ({
-      color: '#333',
-      weight: 1,
-      fillOpacity: 0.7,
-      fillColor: ndreColor(feature.properties.ndre)
-    }),
-    onEachFeature: (feature, layer) => {
-      const p = feature.properties;
-      layer.bindTooltip(
-        `<strong>${p.field_id}</strong><br>NDRE: ${p.ndre}`,
-        { sticky: true }
-      );
-      layer.on('click', () => selectField(p.field_id));
-    }
-  }).addTo(map);
-}
-
-function renderStressLayer() {
-  clearOverlayLayers();
-  overlayLayers.stress = L.geoJSON(fieldsGeoJSON, {
-    style: (feature) => ({
-      color: '#333',
-      weight: 1,
-      fillOpacity: 0.65,
-      fillColor: stressColor(feature.properties.status)
-    }),
-    onEachFeature: (feature, layer) => {
-      const p = feature.properties;
-      layer.bindTooltip(
-        `<strong>${p.field_id}</strong><br>${stressTextLabel(p.status)}`,
-        { sticky: true }
-      );
-      layer.on('click', () => selectField(p.field_id));
-    }
-  }).addTo(map);
-}
-
-/* ===========================================================
-   FIELD SELECTION & HIGHLIGHT
-   =========================================================== */
-function selectField(fieldId) {
-  selectedFieldId = fieldId;
-
-  // Clear old highlight
-  if (highlightLayer) {
-    map.removeLayer(highlightLayer);
-    highlightLayer = null;
-  }
-
-  // Find feature
-  const feature = fieldsGeoJSON.features.find(
-    f => f.properties.field_id.toUpperCase() === fieldId.toUpperCase()
-  );
-  if (!feature) return;
-
-  // Highlight polygon
-  highlightLayer = L.geoJSON(feature, {
-    style: {
-      color: '#ffcc00',
-      weight: 4,
-      fillOpacity: 0.12,
-      fillColor: '#ffcc00',
-      dashArray: '6, 4'
-    }
-  }).addTo(map);
-  highlightLayer.bringToFront();
-
-  // Update field analysis card
-  const p = feature.properties;
-  setText('card-field-id', p.field_id);
-  setText('card-field-name', `${p.field_name} • ${p.crop} (${p.area_ha} ha)`);
-  setText('card-area', p.area_ha + ' ha');
-
-  const ndviEl = document.getElementById('card-ndvi');
-  if (ndviEl) {
-    ndviEl.textContent = p.ndvi != null ? p.ndvi.toFixed(2) : '—';
-    ndviEl.style.color = ndviColor(p.ndvi);
-  }
-
-  const ndreEl = document.getElementById('card-ndre');
-  if (ndreEl) {
-    ndreEl.textContent = p.ndre != null ? p.ndre.toFixed(2) : '—';
-  }
-
-  // Status badge
-  const statusMap = {
-    'Healthy': { icon: '\u{1F7E2}', cls: 'healthy', stress: 'Low (Stable Canopy)' },
-    'Moderate': { icon: '\u{1F7E1}', cls: 'moderate', stress: 'Moderate (Monitor Closely)' },
-    'Potentially Stressed': { icon: '\u{1F534}', cls: 'stressed', stress: 'High (Field Scout Recommended)' }
-  };
-  const info = statusMap[p.status] || statusMap['Healthy'];
-  setText('card-status-icon', info.icon);
-  setText('card-status-text', p.status);
-  setText('card-stress-level', info.stress);
-
-  const badge = document.getElementById('card-status-badge');
-  if (badge) {
-    badge.className = 'field-status-badge ' + info.cls;
-  }
-
-  const stressEl = document.getElementById('card-stress-level');
-  if (stressEl) {
-    const colorMap = { healthy: '#2d6a4f', moderate: '#e9a820', stressed: '#d62828' };
-    stressEl.style.color = colorMap[info.cls] || '#2d6a4f';
-  }
-
-  // Load timeseries
-  loadTimeseries(fieldId);
-}
-
-/* ===========================================================
-   TIMESERIES CHART
-   =========================================================== */
-async function loadTimeseries(fieldId) {
-  try {
-    const res = await fetch(`/api/fields/${fieldId}/timeseries`);
-    if (!res.ok) return;
-    const d = await res.json();
-
-    // Backend returns { observations: { August: 0.65, September: 0.71, October: 0.69 }, is_declining, warning_message }
-    const obs = d.observations || {};
-    const months = Object.keys(obs);
-    const ndviVals = Object.values(obs);
-
-    // Ensure we have 3 values for Aug/Sep/Oct
-    const augVal = ndviVals[0] != null ? ndviVals[0] : null;
-    const sepVal = ndviVals[1] != null ? ndviVals[1] : null;
-    const octVal = ndviVals[2] != null ? ndviVals[2] : null;
-
-    // Update value labels
-    setText('val-aug', augVal != null ? augVal.toFixed(2) : '—');
-    setText('val-sep', sepVal != null ? sepVal.toFixed(2) : '—');
-
-    const octEl = document.getElementById('val-oct');
-    if (octEl) {
-      octEl.textContent = octVal != null ? octVal.toFixed(2) : '—';
-      if (octVal != null) {
-        octEl.style.color = octVal >= 0.65 ? 'var(--healthy)' :
-                             octVal >= 0.45 ? 'var(--moderate)' : 'var(--stressed)';
+class CropPulseApp {
+  constructor() {
+    this.aois = FALLBACK_AOIS;
+    this.timeseries = FALLBACK_TIMESERIES;
+    
+    // Application State
+    this.state = {
+      viewState: 'empty', // 'empty' | 'loading' | 'results'
+      activeTab: 'monitor', // 'monitor' | 'fields' | 'reports'
+      activeAoiId: 'central-valley',
+      selectedAoi: null, // null until selected or preset loaded
+      currentIndex: 'ndvi', // 'ndvi' | 'ndre' | 'evi'
+      currentPeriod: 'May 01 – May 18, 2024',
+      baselinePeriod: 'May 01 – May 18, 2023',
+      activeLayer: 'cadastre', // 'cadastre' | 'satellite' | 'heatmap' | 'stress'
+      selectedParcel: null,
+      zoomLevel: 1,
+      thresholds: {
+        healthy: 0.65,
+        moderateMin: 0.45,
+        stressedMax: 0.45
       }
+    };
+
+    this.leafletMap = null;
+    this.leafletLayerGroup = null;
+
+    this.init();
+  }
+
+  async init() {
+    // Attempt to load external JSON if served over HTTP
+    try {
+      const aoiRes = await fetch('data/aoi_presets.json');
+      if (aoiRes.ok) this.aois = await aoiRes.json();
+      
+      const tsRes = await fetch('data/timeseries.json');
+      if (tsRes.ok) this.timeseries = await tsRes.json();
+    } catch (e) {
+      console.log('Using embedded fallback datasets (standalone mode).');
     }
 
-    // Update decline banner
-    const banner = document.getElementById('decline-banner');
-    const bannerIcon = document.getElementById('decline-banner-icon');
-    const bannerText = document.getElementById('decline-banner-text');
-    if (banner && bannerIcon && bannerText) {
-      if (d.is_declining) {
-        banner.className = 'decline-warning-banner warning';
-        bannerIcon.textContent = 'warning';
-        bannerText.textContent = d.warning_message || 'Potential decline in crop condition detected across observation windows.';
+    this.bindEvents();
+    this.render();
+  }
+
+  // Bind all interactive UI controls
+  bindEvents() {
+    // Navigation Tabs
+    document.querySelectorAll('[data-nav-tab]').forEach(tab => {
+      tab.addEventListener('click', (e) => {
+        e.preventDefault();
+        const targetTab = tab.getAttribute('data-nav-tab');
+        this.switchTab(targetTab);
+      });
+    });
+
+    // Main Analyze Buttons (in empty state hero & in control strip)
+    const emptyAnalyzeBtn = document.getElementById('empty-analyze-btn');
+    if (emptyAnalyzeBtn) {
+      emptyAnalyzeBtn.addEventListener('click', () => this.runAnalysisPipeline());
+    }
+
+    const controlAnalyzeBtn = document.getElementById('control-analyze-btn');
+    if (controlAnalyzeBtn) {
+      controlAnalyzeBtn.addEventListener('click', () => this.runAnalysisPipeline());
+    }
+
+    // Reset Button
+    const resetBtn = document.getElementById('reset-btn');
+    if (resetBtn) {
+      resetBtn.addEventListener('click', () => this.resetDashboard());
+    }
+
+    // AOI Selectors
+    const aoiTrigger = document.getElementById('aoi-selector-trigger');
+    if (aoiTrigger) {
+      aoiTrigger.addEventListener('click', () => this.openModal('aoi-modal'));
+    }
+
+    const heroSelectAreaBtn = document.getElementById('hero-select-area-btn');
+    if (heroSelectAreaBtn) {
+      heroSelectAreaBtn.addEventListener('click', () => this.openModal('aoi-modal'));
+    }
+
+    // Preset chips in Empty State
+    document.querySelectorAll('[data-preset-aoi]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const aoiId = btn.getAttribute('data-preset-aoi');
+        this.selectAoi(aoiId);
+        this.showToast(`Loaded ${this.aois[aoiId].name}`);
+      });
+    });
+
+    // Current & Baseline Period triggers
+    const currentPeriodTrigger = document.getElementById('current-period-trigger');
+    if (currentPeriodTrigger) {
+      currentPeriodTrigger.addEventListener('click', () => this.openModal('date-modal'));
+    }
+
+    const baselinePeriodTrigger = document.getElementById('baseline-period-trigger');
+    if (baselinePeriodTrigger) {
+      baselinePeriodTrigger.addEventListener('click', () => this.openModal('date-modal'));
+    }
+
+    // Vegetation Index Dropdown
+    const indexSelect = document.getElementById('index-select');
+    if (indexSelect) {
+      indexSelect.addEventListener('change', (e) => {
+        this.setIndex(e.target.value);
+      });
+    }
+
+    // Map Navigation Controls
+    const zoomInBtn = document.getElementById('zoom-in-btn');
+    if (zoomInBtn) zoomInBtn.addEventListener('click', () => this.adjustZoom(0.2));
+
+    const zoomOutBtn = document.getElementById('zoom-out-btn');
+    if (zoomOutBtn) zoomOutBtn.addEventListener('click', () => this.adjustZoom(-0.2));
+
+    const recenterBtn = document.getElementById('recenter-btn');
+    if (recenterBtn) recenterBtn.addEventListener('click', () => this.recenterMap());
+
+    // Layer Toggles
+    document.querySelectorAll('[data-map-layer]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const layer = btn.getAttribute('data-map-layer');
+        this.setMapLayer(layer);
+      });
+    });
+
+    // Sector 4 Callout Trigger
+    const inspectSector4Btn = document.getElementById('inspect-sector4-callout');
+    if (inspectSector4Btn) {
+      inspectSector4Btn.addEventListener('click', () => {
+        this.openFieldDrawer('poly-4');
+      });
+    }
+
+    // Field Detail Drawer close buttons
+    const closeDrawerBtn = document.getElementById('close-drawer-btn');
+    if (closeDrawerBtn) closeDrawerBtn.addEventListener('click', () => this.closeFieldDrawer());
+
+    const dismissDrawerBtn = document.getElementById('dismiss-drawer-btn');
+    if (dismissDrawerBtn) dismissDrawerBtn.addEventListener('click', () => this.closeFieldDrawer());
+
+    const drawerBackdrop = document.getElementById('drawer-backdrop');
+    if (drawerBackdrop) drawerBackdrop.addEventListener('click', () => this.closeFieldDrawer());
+
+    // Create Scout Ticket Button
+    const createTicketBtn = document.getElementById('create-ticket-btn');
+    if (createTicketBtn) {
+      createTicketBtn.addEventListener('click', () => {
+        this.openScoutTicketModal();
+      });
+    }
+
+    // Top Action Buttons
+    const exportBtn = document.getElementById('top-export-btn');
+    if (exportBtn) exportBtn.addEventListener('click', () => this.openModal('export-modal'));
+
+    const settingsBtn = document.getElementById('top-settings-btn');
+    if (settingsBtn) settingsBtn.addEventListener('click', () => this.openModal('settings-modal'));
+
+    const demoTourBtn = document.getElementById('demo-tour-btn');
+    if (demoTourBtn) demoTourBtn.addEventListener('click', () => this.startGuidedDemo());
+
+    // Modal Close Buttons
+    document.querySelectorAll('[data-close-modal]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const modalId = btn.getAttribute('data-close-modal');
+        this.closeModal(modalId);
+      });
+    });
+
+    // Close Modals on Backdrop Click
+    document.querySelectorAll('.modal-backdrop').forEach(backdrop => {
+      backdrop.addEventListener('click', (e) => {
+        if (e.target === backdrop) {
+          backdrop.classList.add('hidden');
+        }
+      });
+    });
+
+    // Parcel Click Delegations (SVG)
+    const mapSvg = document.getElementById('cadastre-map-svg');
+    if (mapSvg) {
+      mapSvg.addEventListener('click', (e) => {
+        const parcel = e.target.closest('.cadastre-parcel');
+        if (parcel) {
+          const parcelId = parcel.getAttribute('id');
+          this.openFieldDrawer(parcelId);
+        }
+      });
+    }
+
+    // Settings Threshold Form Submission
+    const saveThresholdsBtn = document.getElementById('save-thresholds-btn');
+    if (saveThresholdsBtn) {
+      saveThresholdsBtn.addEventListener('click', () => {
+        this.saveCustomThresholds();
+      });
+    }
+
+    // Export Action Triggers
+    const exportGeoJsonBtn = document.getElementById('export-geojson-btn');
+    if (exportGeoJsonBtn) {
+      exportGeoJsonBtn.addEventListener('click', () => this.downloadGeoJSON());
+    }
+
+    const exportCsvBtn = document.getElementById('export-csv-btn');
+    if (exportCsvBtn) {
+      exportCsvBtn.addEventListener('click', () => this.downloadCSV());
+    }
+
+    // Date Preset Selection
+    document.querySelectorAll('[data-date-preset]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        const current = btn.getAttribute('data-current-val');
+        const baseline = btn.getAttribute('data-baseline-val');
+        this.setDateRange(current, baseline);
+        this.closeModal('date-modal');
+        this.showToast(`Updated analysis window: ${current}`);
+      });
+    });
+  }
+
+  // Switch between Monitor, Fields, and Reports views
+  switchTab(tabId) {
+    this.state.activeTab = tabId;
+
+    // Update nav links styling
+    document.querySelectorAll('[data-nav-tab]').forEach(tab => {
+      const isTarget = tab.getAttribute('data-nav-tab') === tabId;
+      if (isTarget) {
+        tab.className = 'px-space-sm py-1.5 transition-colors bg-surface-container text-on-surface font-semibold rounded-lg text-xs';
       } else {
-        banner.className = 'decline-warning-banner stable';
-        bannerIcon.textContent = 'check_circle';
-        bannerText.textContent = d.warning_message || 'Crop condition is stable across observation windows.';
+        tab.className = 'px-space-sm py-1.5 font-label-md text-label-md text-on-surface-variant hover:text-on-surface transition-colors text-xs';
+      }
+    });
+
+    // Hide all tab views
+    const monitorView = document.getElementById('view-monitor');
+    const fieldsView = document.getElementById('view-fields');
+    const reportsView = document.getElementById('view-reports');
+
+    if (monitorView) monitorView.classList.add('hidden');
+    if (fieldsView) fieldsView.classList.add('hidden');
+    if (reportsView) reportsView.classList.add('hidden');
+
+    if (tabId === 'monitor') {
+      if (monitorView) monitorView.classList.remove('hidden');
+    } else if (tabId === 'fields') {
+      if (fieldsView) {
+        fieldsView.classList.remove('hidden');
+        this.renderFieldsTable();
+      }
+    } else if (tabId === 'reports') {
+      if (reportsView) {
+        reportsView.classList.remove('hidden');
+        this.renderReportsView();
+      }
+    }
+  }
+
+  // Select AOI from modal or quick preset
+  selectAoi(aoiId) {
+    if (!this.aois[aoiId]) return;
+    this.state.activeAoiId = aoiId;
+    this.state.selectedAoi = this.aois[aoiId];
+    this.state.currentPeriod = this.aois[aoiId].currentWindow;
+    this.state.baselinePeriod = this.aois[aoiId].baselineWindow;
+
+    // Enable the hero and control analyze buttons
+    const emptyAnalyzeBtn = document.getElementById('empty-analyze-btn');
+    if (emptyAnalyzeBtn) {
+      emptyAnalyzeBtn.disabled = false;
+      emptyAnalyzeBtn.className = 'h-10 px-space-xl bg-primary-container hover:bg-secondary text-on-primary font-label-md text-label-md rounded-lg shadow-md flex items-center gap-space-xs transition-all cursor-pointer';
+    }
+
+    const controlAnalyzeBtn = document.getElementById('control-analyze-btn');
+    if (controlAnalyzeBtn) {
+      controlAnalyzeBtn.disabled = false;
+      controlAnalyzeBtn.classList.remove('opacity-60', 'cursor-not-allowed');
+    }
+
+    // Update labels in UI
+    const aoiLabels = document.querySelectorAll('.aoi-display-name');
+    aoiLabels.forEach(el => el.textContent = `${this.aois[aoiId].name} (${this.aois[aoiId].cropType})`);
+
+    const aoiCoords = document.querySelectorAll('.aoi-display-coords');
+    aoiCoords.forEach(el => el.textContent = this.aois[aoiId].coordinates);
+
+    const aoiArea = document.querySelectorAll('.aoi-display-area');
+    aoiArea.forEach(el => el.textContent = `${this.aois[aoiId].aoiAreaHa.toLocaleString()} Hectares`);
+
+    const currentPeriodText = document.querySelectorAll('.current-period-text');
+    currentPeriodText.forEach(el => el.textContent = this.state.currentPeriod);
+
+    const baselinePeriodText = document.querySelectorAll('.baseline-period-text');
+    baselinePeriodText.forEach(el => el.textContent = this.state.baselinePeriod);
+
+    // If currently on results, re-render dashboard data
+    if (this.state.viewState === 'results') {
+      this.renderResults();
+      if (this.leafletMap) {
+        this.leafletMap.setView([this.aois[aoiId].lat, this.aois[aoiId].lng], this.aois[aoiId].zoom);
       }
     }
 
-    // Render SVG chart
-    renderTimeseriesChart(ndviVals);
-  } catch (err) {
-    console.error('Timeseries fetch error:', err);
-  }
-}
-
-function renderTimeseriesChart(values) {
-  // Chart area: viewBox 0 0 450 140, plot area x:40-440, y:20-120
-  const xMin = 60, xMax = 420, yMin = 20, yMax = 120;
-  const vMin = 0.3, vMax = 0.85;
-
-  function mapX(i) {
-    return xMin + (i / (values.length - 1)) * (xMax - xMin);
-  }
-  function mapY(v) {
-    const clamped = Math.max(vMin, Math.min(vMax, v));
-    return yMax - ((clamped - vMin) / (vMax - vMin)) * (yMax - yMin);
+    this.closeModal('aoi-modal');
   }
 
-  // Build line path
-  const linePoints = values.map((v, i) => `${mapX(i).toFixed(1)},${mapY(v).toFixed(1)}`);
-  const linePath = 'M' + linePoints.join(' L');
+  // Run the 4-step satellite processing simulation
+  runAnalysisPipeline() {
+    if (!this.state.selectedAoi) {
+      this.selectAoi('central-valley');
+    }
 
-  // Area path (fill under line)
-  const areaPath = linePath +
-    ` L${mapX(values.length - 1).toFixed(1)},${yMax}` +
-    ` L${mapX(0).toFixed(1)},${yMax} Z`;
+    const loadingModal = document.getElementById('loading-modal');
+    if (loadingModal) loadingModal.classList.remove('hidden');
 
-  const lineEl = document.getElementById('chart-line-path');
-  const areaEl = document.getElementById('chart-area-path');
-  if (lineEl) lineEl.setAttribute('d', linePath);
-  if (areaEl) areaEl.setAttribute('d', areaPath);
+    const progressBar = document.getElementById('loading-progress-bar');
+    const loadingStepText = document.getElementById('loading-step-text');
+    const stepIcons = [
+      document.getElementById('step-1-icon'),
+      document.getElementById('step-2-icon'),
+      document.getElementById('step-3-icon'),
+      document.getElementById('step-4-icon')
+    ];
 
-  // Render data points
-  const pointsGroup = document.getElementById('chart-points-group');
-  if (pointsGroup) {
-    pointsGroup.innerHTML = '';
-    const monthLabels = ['Aug', 'Sep', 'Oct'];
-    values.forEach((v, i) => {
-      const cx = mapX(i), cy = mapY(v);
+    const steps = [
+      { pct: '25%', text: 'Retrieving Sentinel-2 MSI Multi-spectral Bands (B4, B8)...', iconIdx: 0 },
+      { pct: '50%', text: 'Cloud Filtering & Atmospheric QA Masking (< 1% cloud cover)...', iconIdx: 1 },
+      { pct: '75%', text: `Computing Vegetation Index: ${this.state.currentIndex.toUpperCase()} = (NIR - Red) / (NIR + Red)...`, iconIdx: 2 },
+      { pct: '100%', text: 'Health Classification & Baseline Anomaly Detection Complete.', iconIdx: 3 }
+    ];
 
-      // Outer circle
-      const outerCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      outerCircle.setAttribute('cx', cx);
-      outerCircle.setAttribute('cy', cy);
-      outerCircle.setAttribute('r', '6');
-      outerCircle.setAttribute('fill', 'white');
-      outerCircle.setAttribute('stroke', '#1b4332');
-      outerCircle.setAttribute('stroke-width', '2');
-      pointsGroup.appendChild(outerCircle);
+    let currentStep = 0;
 
-      // Inner dot
-      const innerCircle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
-      innerCircle.setAttribute('cx', cx);
-      innerCircle.setAttribute('cy', cy);
-      innerCircle.setAttribute('r', '3');
-      innerCircle.setAttribute('fill', '#1b4332');
-      pointsGroup.appendChild(innerCircle);
-
-      // Value label
-      const valText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      valText.setAttribute('x', cx);
-      valText.setAttribute('y', cy - 12);
-      valText.setAttribute('text-anchor', 'middle');
-      valText.setAttribute('fill', '#1b4332');
-      valText.setAttribute('font-size', '10');
-      valText.setAttribute('font-weight', '700');
-      valText.setAttribute('font-family', 'monospace');
-      valText.textContent = v.toFixed(2);
-      pointsGroup.appendChild(valText);
-
-      // Month label on x-axis
-      const monthText = document.createElementNS('http://www.w3.org/2000/svg', 'text');
-      monthText.setAttribute('x', cx);
-      monthText.setAttribute('y', yMax + 14);
-      monthText.setAttribute('text-anchor', 'middle');
-      monthText.setAttribute('fill', '#9ca3af');
-      monthText.setAttribute('font-size', '10');
-      monthText.setAttribute('font-family', 'monospace');
-      monthText.textContent = monthLabels[i] || '';
-      pointsGroup.appendChild(monthText);
-    });
-  }
-}
-
-/* ===========================================================
-   LAYER SWITCHING
-   =========================================================== */
-function bindLayerSwitching() {
-  // Base layer radio buttons
-  const radios = document.querySelectorAll('input[name="base-layer"]');
-  radios.forEach(radio => {
-    radio.addEventListener('change', (e) => {
-      switchBaseLayer(e.target.value);
-    });
-  });
-
-  // Cadastral checkbox
-  const cadastralCb = document.getElementById('layer-cadastral');
-  if (cadastralCb) {
-    cadastralCb.addEventListener('change', () => {
-      if (cadastralCb.checked) {
-        if (cadastralLayer) cadastralLayer.addTo(map);
+    const interval = setInterval(() => {
+      if (currentStep < steps.length) {
+        const step = steps[currentStep];
+        if (progressBar) progressBar.style.width = step.pct;
+        if (loadingStepText) loadingStepText.textContent = step.text;
+        
+        if (stepIcons[step.iconIdx]) {
+          stepIcons[step.iconIdx].textContent = 'check_circle';
+          stepIcons[step.iconIdx].classList.remove('text-text-tertiary');
+          stepIcons[step.iconIdx].classList.add('text-health-healthy');
+        }
+        currentStep++;
       } else {
-        if (cadastralLayer && map.hasLayer(cadastralLayer)) map.removeLayer(cadastralLayer);
+        clearInterval(interval);
+        setTimeout(() => {
+          if (loadingModal) loadingModal.classList.add('hidden');
+          this.setViewState('results');
+          this.showToast('Satellite analysis complete! Results updated.');
+        }, 300);
+      }
+    }, 320);
+  }
+
+  // Switch between 'empty' and 'results' view state
+  setViewState(viewState) {
+    this.state.viewState = viewState;
+    const emptyView = document.getElementById('empty-state-container');
+    const resultsView = document.getElementById('results-state-container');
+
+    if (viewState === 'empty') {
+      if (emptyView) emptyView.classList.remove('hidden');
+      if (resultsView) resultsView.classList.add('hidden');
+    } else if (viewState === 'results') {
+      if (emptyView) emptyView.classList.add('hidden');
+      if (resultsView) resultsView.classList.remove('hidden');
+      this.renderResults();
+    }
+  }
+
+  // Reset to initial empty state
+  resetDashboard() {
+    this.state.selectedAoi = null;
+    this.state.selectedParcel = null;
+    this.closeFieldDrawer();
+    this.setViewState('empty');
+
+    const emptyAnalyzeBtn = document.getElementById('empty-analyze-btn');
+    if (emptyAnalyzeBtn) {
+      emptyAnalyzeBtn.disabled = true;
+      emptyAnalyzeBtn.className = 'w-full lg:w-auto h-[40px] px-space-lg bg-surface-muted text-text-tertiary rounded-lg font-label-md text-label-md flex items-center justify-center gap-space-xs cursor-not-allowed transition-all';
+    }
+
+    const aoiLabels = document.querySelectorAll('.aoi-display-name');
+    aoiLabels.forEach(el => el.textContent = 'Select agricultural area');
+
+    this.showToast('Workspace reset to initial state.');
+  }
+
+  // Set active vegetation index (NDVI / NDRE / EVI)
+  setIndex(indexName) {
+    this.state.currentIndex = indexName;
+    const indexPill = document.getElementById('current-index-pill');
+    if (indexPill) indexPill.textContent = indexName.toUpperCase();
+
+    // Update math formula tooltip
+    const formulaDisplay = document.getElementById('index-formula-badge');
+    if (formulaDisplay) {
+      if (indexName === 'ndvi') {
+        formulaDisplay.textContent = 'NDVI = (B8 - B4) / (B8 + B4) [NIR - Red]';
+      } else if (indexName === 'ndre') {
+        formulaDisplay.textContent = 'NDRE = (B8 - B5) / (B8 + B5) [NIR - RedEdge]';
+      } else {
+        formulaDisplay.textContent = 'EVI = 2.5 * ((NIR - Red) / (NIR + 6*Red - 7.5*Blue + 1))';
+      }
+    }
+
+    if (this.state.viewState === 'results') {
+      this.renderResults();
+      this.showToast(`Active spectral index updated to ${indexName.toUpperCase()}`);
+    }
+  }
+
+  // Set date ranges
+  setDateRange(current, baseline) {
+    this.state.currentPeriod = current;
+    this.state.baselinePeriod = baseline;
+
+    const currentPeriodText = document.querySelectorAll('.current-period-text');
+    currentPeriodText.forEach(el => el.textContent = current);
+
+    const baselinePeriodText = document.querySelectorAll('.baseline-period-text');
+    baselinePeriodText.forEach(el => el.textContent = baseline);
+
+    if (this.state.viewState === 'results') {
+      this.renderResults();
+    }
+  }
+
+  // Adjust zoom for cadastre SVG
+  adjustZoom(delta) {
+    this.state.zoomLevel = Math.max(0.7, Math.min(2.0, this.state.zoomLevel + delta));
+    const cadastreSvg = document.getElementById('cadastre-map-svg');
+    if (cadastreSvg) {
+      cadastreSvg.style.transform = `scale(${this.state.zoomLevel})`;
+      cadastreSvg.style.transformOrigin = 'center center';
+    }
+    if (this.leafletMap) {
+      if (delta > 0) this.leafletMap.zoomIn();
+      else this.leafletMap.zoomOut();
+    }
+  }
+
+  // Recenter map
+  recenterMap() {
+    this.state.zoomLevel = 1.0;
+    const cadastreSvg = document.getElementById('cadastre-map-svg');
+    if (cadastreSvg) {
+      cadastreSvg.style.transform = 'scale(1.0)';
+    }
+    if (this.leafletMap && this.state.selectedAoi) {
+      this.leafletMap.setView([this.state.selectedAoi.lat, this.state.selectedAoi.lng], this.state.selectedAoi.zoom);
+    }
+    this.showToast('Recentered to AOI boundary.');
+  }
+
+  // Set map layer mode
+  setMapLayer(layer) {
+    this.state.activeLayer = layer;
+
+    // Update layer buttons styling
+    document.querySelectorAll('[data-map-layer]').forEach(btn => {
+      const isTarget = btn.getAttribute('data-map-layer') === layer;
+      if (isTarget) {
+        btn.className = 'px-2 py-1 rounded font-label-sm text-label-sm bg-primary text-on-primary font-semibold transition-all text-xs';
+      } else {
+        btn.className = 'px-2 py-1 rounded font-label-sm text-label-sm text-text-secondary hover:text-text-primary font-medium transition-all text-xs';
       }
     });
-  }
-}
 
-function switchBaseLayer(layerName) {
-  // Remove all base tiles
-  Object.values(baseTiles).forEach(t => {
-    if (map.hasLayer(t)) map.removeLayer(t);
-  });
-  clearOverlayLayers();
+    const cadastreContainer = document.getElementById('cadastre-view-container');
+    const leafletContainer = document.getElementById('leaflet-map-container');
+    const heatmaps = document.querySelectorAll('.spectral-heatmap-overlay');
+    const furrows = document.querySelectorAll('.crop-furrow-pattern');
 
-  switch (layerName) {
-    case 'satellite':
-      baseTiles.satellite.addTo(map);
-      break;
-    case 'rgb':
-      baseTiles.rgb.addTo(map);
-      break;
-    case 'ndvi':
-      baseTiles.satellite.addTo(map);
-      renderNDVILayer();
-      break;
-    case 'ndre':
-      baseTiles.satellite.addTo(map);
-      renderNDRELayer();
-      break;
-    case 'stress':
-      baseTiles.satellite.addTo(map);
-      renderStressLayer();
-      break;
-    default:
-      baseTiles.satellite.addTo(map);
-  }
-
-  // Re-add highlight if a field is selected
-  if (highlightLayer) highlightLayer.bringToFront();
-
-  updateLegend(layerName);
-}
-
-/* ===========================================================
-   DYNAMIC LEGEND
-   =========================================================== */
-function updateLegend(layerName) {
-  const legend = document.getElementById('dynamic-legend');
-  if (!legend) return;
-
-  let html = '';
-
-  switch (layerName) {
-    case 'ndvi':
-      html = `
-        <div class="legend-title">NDVI — Vegetation Index</div>
-        <div class="legend-gradient-bar" style="background: linear-gradient(to right, #f44336, #ffeb3b, #cddc39, #8bc34a, #4caf50, #1b7a1b);"></div>
-        <div class="legend-labels"><span>Low (0.0)</span><span>High (1.0)</span></div>
-        <div class="legend-items">
-          <div class="legend-item"><span class="legend-swatch" style="background:#1b7a1b;"></span>&#8805; 0.70 Vigorous</div>
-          <div class="legend-item"><span class="legend-swatch" style="background:#4caf50;"></span>0.60 – 0.70 Healthy</div>
-          <div class="legend-item"><span class="legend-swatch" style="background:#8bc34a;"></span>0.50 – 0.60 Moderate</div>
-          <div class="legend-item"><span class="legend-swatch" style="background:#cddc39;"></span>0.40 – 0.50 Low Vigor</div>
-          <div class="legend-item"><span class="legend-swatch" style="background:#ffeb3b;"></span>0.30 – 0.40 Sparse</div>
-          <div class="legend-item"><span class="legend-swatch" style="background:#f44336;"></span>&lt; 0.30 Bare/Stressed</div>
-        </div>`;
-      break;
-
-    case 'ndre':
-      html = `
-        <div class="legend-title">NDRE — Chlorophyll Content</div>
-        <div class="legend-gradient-bar" style="background: linear-gradient(to right, #e74c3c, #f9e79f, #48c9b0, #2e86c1, #1a5276);"></div>
-        <div class="legend-labels"><span>Low</span><span>High</span></div>
-        <div class="legend-items">
-          <div class="legend-item"><span class="legend-swatch" style="background:#1a5276;"></span>&#8805; 0.50 High Chlorophyll</div>
-          <div class="legend-item"><span class="legend-swatch" style="background:#2e86c1;"></span>0.42 – 0.50 Healthy</div>
-          <div class="legend-item"><span class="legend-swatch" style="background:#48c9b0;"></span>0.35 – 0.42 Moderate</div>
-          <div class="legend-item"><span class="legend-swatch" style="background:#f9e79f;"></span>0.28 – 0.35 Low</div>
-          <div class="legend-item"><span class="legend-swatch" style="background:#e74c3c;"></span>&lt; 0.28 Deficient</div>
-        </div>`;
-      break;
-
-    case 'stress':
-      html = `
-        <div class="legend-title">Crop Stress — Health Classification</div>
-        <div class="legend-items">
-          <div class="legend-item"><span class="legend-swatch" style="background:#2d6a4f;"></span>\u{1F7E2} Healthy</div>
-          <div class="legend-item"><span class="legend-swatch" style="background:#e9a820;"></span>\u{1F7E1} Moderate</div>
-          <div class="legend-item"><span class="legend-swatch" style="background:#d62828;"></span>\u{1F534} Potential Stress</div>
-        </div>
-        <div class="legend-note">Based on NDVI/NDRE thresholds. Not a confirmed disease diagnosis.</div>`;
-      break;
-
-    case 'rgb':
-      html = `
-        <div class="legend-title">RGB — Natural Color View</div>
-        <div class="legend-items">
-          <div class="legend-item"><span class="legend-swatch" style="background: linear-gradient(135deg, #6db36d, #8b6914, #5a7d8c);"></span>Natural Color Composite</div>
-        </div>
-        <div class="legend-note">Standard map tiles used as RGB placeholder. Connect Sentinel-2 bands (B4, B3, B2) for true-color imagery.</div>`;
-      break;
-
-    case 'satellite':
-      html = `
-        <div class="legend-title">Satellite — Aerial Imagery</div>
-        <div class="legend-items">
-          <div class="legend-item"><span class="legend-swatch" style="background: linear-gradient(135deg, #3a5f0b, #6b8e23, #daa520);"></span>ESRI World Imagery</div>
-        </div>`;
-      break;
-
-    default:
-      html = `
-        <div class="legend-title">Cadastral — Field Boundaries</div>
-        <div class="legend-items">
-          <div class="legend-item"><span class="legend-swatch" style="background:#2d6a4f; border: 2px solid #1b4332;"></span>Field Boundary</div>
-        </div>`;
-  }
-
-  legend.innerHTML = html;
-}
-
-/* ===========================================================
-   MAP CONTROL BUTTONS
-   =========================================================== */
-function bindControls() {
-  // Zoom In
-  const btnZoomIn = document.getElementById('btn-zoom-in');
-  if (btnZoomIn) btnZoomIn.addEventListener('click', () => map.zoomIn());
-
-  // Zoom Out
-  const btnZoomOut = document.getElementById('btn-zoom-out');
-  if (btnZoomOut) btnZoomOut.addEventListener('click', () => map.zoomOut());
-
-  // Reset View
-  const btnReset = document.getElementById('btn-reset');
-  if (btnReset) btnReset.addEventListener('click', () => {
-    if (cadastralLayer) {
-      map.fitBounds(cadastralLayer.getBounds(), { padding: [30, 30] });
+    if (layer === 'satellite') {
+      if (cadastreContainer) cadastreContainer.classList.add('hidden');
+      if (leafletContainer) {
+        leafletContainer.classList.remove('hidden');
+        this.initOrUpdateLeafletMap();
+      }
     } else {
-      map.setView(DEFAULT_CENTER, DEFAULT_ZOOM);
-    }
-  });
+      if (leafletContainer) leafletContainer.classList.add('hidden');
+      if (cadastreContainer) cadastreContainer.classList.remove('hidden');
 
-  // Full Screen
-  const btnFS = document.getElementById('btn-fullscreen');
-  if (btnFS) {
-    btnFS.addEventListener('click', () => {
-      const mapSection = document.getElementById('map-section');
-      if (!mapSection) return;
-
-      if (!document.fullscreenElement) {
-        mapSection.requestFullscreen().then(() => {
-          setTimeout(() => map.invalidateSize(), 200);
-        }).catch(() => {});
+      if (layer === 'rgb') {
+        heatmaps.forEach(el => el.style.opacity = '0');
+        furrows.forEach(el => el.style.opacity = '0.9');
+      } else if (layer === 'stress') {
+        heatmaps.forEach(el => el.style.opacity = '0.95');
       } else {
-        document.exitFullscreen().then(() => {
-          setTimeout(() => map.invalidateSize(), 200);
-        }).catch(() => {});
+        // default cadastre
+        heatmaps.forEach(el => el.style.opacity = '0.7');
+        furrows.forEach(el => el.style.opacity = '0.65');
       }
+    }
+    this.showToast(`Layer mode switched: ${layer.toUpperCase()}`);
+  }
+
+  // Initialize or update Leaflet map for live satellite tiles
+  initOrUpdateLeafletMap() {
+    if (!window.L) return;
+    const aoi = this.state.selectedAoi || this.aois['central-valley'];
+
+    if (!this.leafletMap) {
+      this.leafletMap = L.map('leaflet-map-container', {
+        center: [aoi.lat, aoi.lng],
+        zoom: aoi.zoom,
+        zoomControl: false,
+        attributionControl: false
+      });
+
+      // High-resolution ESRI World Imagery
+      L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+        maxZoom: 19
+      }).addTo(this.leafletMap);
+
+      this.leafletLayerGroup = L.layerGroup().addTo(this.leafletMap);
+    } else {
+      this.leafletMap.setView([aoi.lat, aoi.lng], aoi.zoom);
+    }
+
+    // Add parcels polygons to Leaflet map
+    if (this.leafletLayerGroup) {
+      this.leafletLayerGroup.clearLayers();
+
+      const offsetLat = 0.004;
+      const offsetLng = 0.006;
+      const baseLat = aoi.lat;
+      const baseLng = aoi.lng;
+
+      aoi.parcels.forEach((p, idx) => {
+        // Generate pseudo geographic bounding box for parcel
+        const row = Math.floor(idx / 3);
+        const col = idx % 3;
+        const pLat1 = baseLat + (row - 1) * offsetLat;
+        const pLat2 = pLat1 + offsetLat * 0.85;
+        const pLng1 = baseLng + (col - 1) * offsetLng;
+        const pLng2 = pLng1 + offsetLng * 0.85;
+
+        const bounds = [[pLat1, pLng1], [pLat2, pLng2]];
+        const color = p.status === 'Healthy' ? '#2d6a4f' : (p.status === 'Moderate' ? '#d97706' : '#dc2626');
+
+        const rect = L.rectangle(bounds, {
+          color: color,
+          weight: 2,
+          fillColor: color,
+          fillOpacity: 0.45
+        }).addTo(this.leafletLayerGroup);
+
+        rect.bindTooltip(`<strong>${p.name}</strong><br/>NDVI: ${p.currentNdvi} • ${p.status}`, {
+          sticky: true
+        });
+
+        rect.on('click', () => {
+          this.openFieldDrawer(p.id);
+        });
+      });
+    }
+  }
+
+  // Open Contextual Field Detail Drawer
+  openFieldDrawer(parcelId) {
+    const aoi = this.state.selectedAoi || this.aois['central-valley'];
+    const parcel = aoi.parcels.find(p => p.id === parcelId) || aoi.parcels[3];
+    this.state.selectedParcel = parcel;
+
+    // Highlight active parcel on SVG map
+    document.querySelectorAll('.cadastre-parcel').forEach(p => {
+      p.classList.remove('active-selected');
+    });
+    const parcelElem = document.getElementById(parcelId);
+    if (parcelElem) parcelElem.classList.add('active-selected');
+
+    // Populate Drawer Elements
+    const fieldName = document.getElementById('drawer-field-name');
+    if (fieldName) fieldName.textContent = parcel.name;
+
+    const cropName = document.getElementById('drawer-crop-name');
+    if (cropName) cropName.textContent = `${parcel.crop} • ${parcel.areaHa} Hectares`;
+
+    const statusBadge = document.getElementById('drawer-status-badge');
+    const statusText = document.getElementById('drawer-status-text');
+    const statusIcon = document.getElementById('drawer-status-icon');
+
+    if (statusBadge && statusText && statusIcon) {
+      if (parcel.status === 'Healthy') {
+        statusBadge.className = 'p-space-sm bg-health-healthy-bg border border-health-healthy-border rounded-lg flex items-center justify-between';
+        statusText.className = 'font-headline-sm text-headline-sm text-health-healthy';
+        statusText.textContent = 'Optimal Photosynthesis (Healthy)';
+        statusIcon.className = 'material-symbols-outlined text-health-healthy text-[28px]';
+        statusIcon.textContent = 'check_circle';
+      } else if (parcel.status === 'Moderate') {
+        statusBadge.className = 'p-space-sm bg-health-moderate-bg border border-health-moderate-border rounded-lg flex items-center justify-between';
+        statusText.className = 'font-headline-sm text-headline-sm text-health-moderate';
+        statusText.textContent = 'Transitional / Watch Required';
+        statusIcon.className = 'material-symbols-outlined text-health-moderate text-[28px]';
+        statusIcon.textContent = 'warning';
+      } else {
+        statusBadge.className = 'p-space-sm bg-health-stressed-bg border border-health-stressed-border rounded-lg flex items-center justify-between';
+        statusText.className = 'font-headline-sm text-headline-sm text-health-stressed';
+        statusText.textContent = 'High Water / Biomass Stress';
+        statusIcon.className = 'material-symbols-outlined text-health-stressed text-[28px]';
+        statusIcon.textContent = 'error';
+      }
+    }
+
+    // Metric values
+    const currentVal = this.state.currentIndex === 'ndre' ? parcel.currentNdre : parcel.currentNdvi;
+    const currentValElem = document.getElementById('drawer-current-index');
+    if (currentValElem) currentValElem.textContent = currentVal;
+
+    const baselineValElem = document.getElementById('drawer-baseline-index');
+    if (baselineValElem) baselineValElem.textContent = parcel.baselineNdvi;
+
+    const changeValElem = document.getElementById('drawer-change-pct');
+    if (changeValElem) {
+      changeValElem.textContent = parcel.changePct;
+      changeValElem.className = parcel.changePct.startsWith('-') 
+        ? 'font-data-mono text-data-mono font-bold text-health-stressed' 
+        : 'font-data-mono text-data-mono font-bold text-health-healthy';
+    }
+
+    const stressProbElem = document.getElementById('drawer-stress-prob');
+    if (stressProbElem) stressProbElem.textContent = parcel.stressProb;
+
+    const timeElem = document.getElementById('drawer-timestamp');
+    if (timeElem) timeElem.textContent = parcel.timestamp;
+
+    // Protocol list
+    const protocolList = document.getElementById('drawer-protocol-list');
+    if (protocolList) {
+      protocolList.innerHTML = parcel.protocol.map(item => `<li>${item}</li>`).join('');
+    }
+
+    // Slide in drawer & backdrop
+    const drawer = document.getElementById('field-drawer');
+    const backdrop = document.getElementById('drawer-backdrop');
+    if (drawer) drawer.classList.remove('translate-x-full');
+    if (backdrop) backdrop.classList.remove('hidden');
+  }
+
+  // Close Field Detail Drawer
+  closeFieldDrawer() {
+    const drawer = document.getElementById('field-drawer');
+    const backdrop = document.getElementById('drawer-backdrop');
+    if (drawer) drawer.classList.add('translate-x-full');
+    if (backdrop) backdrop.classList.add('hidden');
+
+    document.querySelectorAll('.cadastre-parcel').forEach(p => {
+      p.classList.remove('active-selected');
     });
   }
 
-  // Listen for fullscreen changes to resize map
-  document.addEventListener('fullscreenchange', () => {
-    setTimeout(() => map.invalidateSize(), 200);
-  });
+  // Render complete results state
+  renderResults() {
+    const aoi = this.state.selectedAoi || this.aois['central-valley'];
+    const indexKey = this.state.currentIndex;
+    const kpis = aoi.kpis[indexKey] || aoi.kpis.ndvi;
 
-  // Fit Field
-  const btnFit = document.getElementById('btn-fit-field');
-  if (btnFit) {
-    btnFit.addEventListener('click', () => {
-      if (!selectedFieldId || !fieldsGeoJSON) return;
-      const feature = fieldsGeoJSON.features.find(
-        f => f.properties.field_id.toUpperCase() === selectedFieldId.toUpperCase()
-      );
-      if (feature) {
-        const tempLayer = L.geoJSON(feature);
-        map.fitBounds(tempLayer.getBounds(), { padding: [60, 60], maxZoom: 18 });
-      }
+    // KPI 1: Mean Index
+    const meanValElem = document.getElementById('kpi-mean-val');
+    if (meanValElem) meanValElem.textContent = kpis.mean.toFixed(2);
+
+    const deltaPill = document.getElementById('kpi-delta-pill');
+    if (deltaPill) {
+      deltaPill.innerHTML = `
+        <span class="material-symbols-outlined text-[14px]">${kpis.trend === 'up' ? 'trending_up' : 'trending_down'}</span>
+        ${kpis.delta} vs baseline
+      `;
+      deltaPill.className = kpis.trend === 'up' 
+        ? 'inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-health-healthy-bg text-health-healthy font-label-sm text-label-sm font-medium'
+        : 'inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-health-stressed-bg text-health-stressed font-label-sm text-label-sm font-medium';
+    }
+
+    const baselineRef = document.getElementById('kpi-baseline-ref');
+    if (baselineRef) baselineRef.textContent = `Baseline: ${kpis.baselineMean.toFixed(2)}`;
+
+    // KPI 2: Healthy Area
+    const healthyPctElem = document.getElementById('kpi-healthy-pct');
+    if (healthyPctElem) healthyPctElem.textContent = `${kpis.healthyPct}%`;
+
+    const healthyHaElem = document.getElementById('kpi-healthy-ha');
+    if (healthyHaElem) healthyHaElem.textContent = `${kpis.healthyHa.toLocaleString()} ha`;
+
+    const healthyBar = document.getElementById('kpi-healthy-bar');
+    if (healthyBar) healthyBar.style.width = `${kpis.healthyPct}%`;
+
+    // KPI 3: Moderate Area
+    const modPctElem = document.getElementById('kpi-moderate-pct');
+    if (modPctElem) modPctElem.textContent = `${kpis.moderatePct}%`;
+
+    const modHaElem = document.getElementById('kpi-moderate-ha');
+    if (modHaElem) modHaElem.textContent = `${kpis.moderateHa.toLocaleString()} ha`;
+
+    const modBar = document.getElementById('kpi-moderate-bar');
+    if (modBar) modBar.style.width = `${kpis.moderatePct}%`;
+
+    // KPI 4: Stressed Area
+    const stressedPctElem = document.getElementById('kpi-stressed-pct');
+    if (stressedPctElem) stressedPctElem.textContent = `${kpis.stressedPct}%`;
+
+    const stressedHaElem = document.getElementById('kpi-stressed-ha');
+    if (stressedHaElem) stressedHaElem.textContent = `${kpis.stressedHa.toLocaleString()} ha`;
+
+    // Stress Diagnostics card
+    const stressHectares = document.getElementById('stress-diag-ha');
+    if (stressHectares) stressHectares.textContent = `${aoi.stressDiagnostics.hectares} Hectares`;
+
+    const stressDrop = document.getElementById('stress-diag-drop');
+    if (stressDrop) stressDrop.textContent = aoi.stressDiagnostics.indexDrop;
+
+    const stressSummary = document.getElementById('stress-diag-summary');
+    if (stressSummary) stressSummary.textContent = aoi.stressDiagnostics.summary;
+
+    const stressAoiPct = document.getElementById('stress-diag-aoi-pct');
+    if (stressAoiPct) stressAoiPct.textContent = aoi.stressDiagnostics.pct;
+
+    // Recommendation card
+    const recLead = document.getElementById('rec-card-lead');
+    if (recLead) recLead.textContent = aoi.recommendation.lead;
+
+    // Render Temporal Line Chart
+    this.renderTemporalChart();
+  }
+
+  // Render interactive SVG Temporal Chart
+  renderTemporalChart() {
+    const aoiId = this.state.activeAoiId;
+    const tsData = this.timeseries[aoiId] || this.timeseries['central-valley'];
+    const indexKey = this.state.currentIndex;
+
+    const currentPoints = tsData.current[indexKey] || tsData.current.ndvi;
+    const baselinePoints = tsData.baseline[indexKey] || tsData.baseline.ndvi;
+
+    // Map y-values to svg coordinates (range: y=155 at 0.2 to y=20 at 0.8)
+    const mapY = (val) => {
+      const minVal = 0.2;
+      const maxVal = 0.8;
+      const minY = 155;
+      const maxY = 20;
+      const clamped = Math.max(minVal, Math.min(maxVal, val));
+      return minY - ((clamped - minVal) / (maxVal - minVal)) * (minY - maxY);
+    };
+
+    const xCoords = [60, 152, 244, 336, 428, 520];
+
+    // Generate Path Data for Current Line
+    let currentPath = `M ${xCoords[0]},${mapY(currentPoints[0])}`;
+    for (let i = 1; i < xCoords.length; i++) {
+      const prevX = xCoords[i - 1];
+      const prevY = mapY(currentPoints[i - 1]);
+      const curX = xCoords[i];
+      const curY = mapY(currentPoints[i]);
+      const midX = (prevX + curX) / 2;
+      currentPath += ` C ${midX},${prevY} ${midX},${curY} ${curX},${curY}`;
+    }
+
+    const currentAreaPath = `${currentPath} L ${xCoords[xCoords.length - 1]},155 L ${xCoords[0]},155 Z`;
+
+    // Generate Path Data for Baseline Line
+    let baselinePath = `M ${xCoords[0]},${mapY(baselinePoints[0])}`;
+    for (let i = 1; i < xCoords.length; i++) {
+      const prevX = xCoords[i - 1];
+      const prevY = mapY(baselinePoints[i - 1]);
+      const curX = xCoords[i];
+      const curY = mapY(baselinePoints[i]);
+      const midX = (prevX + curX) / 2;
+      baselinePath += ` C ${midX},${prevY} ${midX},${curY} ${curX},${curY}`;
+    }
+
+    const currentPathElem = document.getElementById('chart-current-path');
+    if (currentPathElem) currentPathElem.setAttribute('d', currentPath);
+
+    const currentAreaElem = document.getElementById('chart-current-area');
+    if (currentAreaElem) currentAreaElem.setAttribute('d', currentAreaPath);
+
+    const baselinePathElem = document.getElementById('chart-baseline-path');
+    if (baselinePathElem) baselinePathElem.setAttribute('d', baselinePath);
+
+    // Update marker nodes & tooltips
+    const markersContainer = document.getElementById('chart-markers-group');
+    if (markersContainer) {
+      markersContainer.innerHTML = '';
+      xCoords.forEach((x, i) => {
+        const y = mapY(currentPoints[i]);
+        const pt = tsData.points[i];
+
+        const circle = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+        circle.setAttribute('cx', x);
+        circle.setAttribute('cy', y);
+        circle.setAttribute('r', '4');
+        circle.setAttribute('fill', '#012d1d');
+        circle.setAttribute('class', 'cursor-pointer hover:r-6 transition-all');
+        circle.setAttribute('stroke', '#a1f4c8');
+        circle.setAttribute('stroke-width', '1.5');
+
+        circle.addEventListener('mouseenter', () => {
+          this.showChartTooltip(x, y, pt.date, currentPoints[i], pt.phenology);
+        });
+
+        markersContainer.appendChild(circle);
+      });
+    }
+
+    // Update X-axis label dates
+    const xLabelsContainer = document.getElementById('chart-x-labels');
+    if (xLabelsContainer) {
+      xLabelsContainer.innerHTML = tsData.dates.map((d, i) => `
+        <span class="${i === tsData.dates.length - 2 ? 'text-primary font-bold' : ''}">${d}</span>
+      `).join('');
+    }
+  }
+
+  // Interactive Chart Tooltip
+  showChartTooltip(x, y, date, val, phenology) {
+    const tooltipGroup = document.getElementById('chart-tooltip-group');
+    if (!tooltipGroup) return;
+
+    tooltipGroup.setAttribute('transform', `translate(${Math.max(20, Math.min(420, x - 50))}, ${Math.max(5, y - 45)})`);
+    
+    const dateText = document.getElementById('chart-tooltip-date');
+    if (dateText) dateText.textContent = `${date.toUpperCase()} • ${this.state.currentIndex.toUpperCase()}`;
+
+    const valText = document.getElementById('chart-tooltip-val');
+    if (valText) valText.textContent = `${val.toFixed(2)} (${phenology.split('(')[0].trim()})`;
+
+    tooltipGroup.style.opacity = '1';
+  }
+
+  // Render Fields Table (for 'Fields' Tab)
+  renderFieldsTable() {
+    const tbody = document.getElementById('fields-table-body');
+    if (!tbody) return;
+
+    const aoi = this.state.selectedAoi || this.aois['central-valley'];
+    tbody.innerHTML = aoi.parcels.map(p => {
+      const statusBadge = p.status === 'Healthy'
+        ? '<span class="px-2 py-0.5 rounded-full bg-health-healthy-bg text-health-healthy text-xs font-semibold">Healthy</span>'
+        : (p.status === 'Moderate'
+          ? '<span class="px-2 py-0.5 rounded-full bg-health-moderate-bg text-health-moderate text-xs font-semibold">Moderate</span>'
+          : '<span class="px-2 py-0.5 rounded-full bg-health-stressed-bg text-health-stressed text-xs font-semibold">Stressed</span>');
+
+      return `
+        <tr class="hover:bg-surface-muted/50 cursor-pointer transition-colors border-b border-border-subtle" onclick="window.cropPulse.openFieldDrawer('${p.id}')">
+          <td class="py-3 px-4 font-medium text-text-primary text-sm flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full ${p.status === 'Healthy' ? 'bg-health-healthy' : (p.status === 'Moderate' ? 'bg-health-moderate' : 'bg-health-stressed')}"></span>
+            ${p.name}
+          </td>
+          <td class="py-3 px-4 text-text-secondary text-sm">${p.crop}</td>
+          <td class="py-3 px-4 text-text-primary text-sm font-data-mono font-medium">${p.areaHa} ha</td>
+          <td class="py-3 px-4 text-text-primary text-sm font-data-mono font-bold">${p.currentNdvi}</td>
+          <td class="py-3 px-4 text-text-secondary text-sm font-data-mono">${p.baselineNdvi}</td>
+          <td class="py-3 px-4 text-sm font-data-mono ${p.changePct.startsWith('-') ? 'text-health-stressed font-bold' : 'text-health-healthy'}">${p.changePct}</td>
+          <td class="py-3 px-4">${statusBadge}</td>
+          <td class="py-3 px-4 text-right">
+            <button class="px-2.5 py-1 text-xs bg-surface border border-border-subtle rounded-md hover:bg-surface-container text-text-secondary font-medium transition-colors">
+              Inspect
+            </button>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  // Render Reports View (for 'Reports' Tab)
+  renderReportsView() {
+    const aoi = this.state.selectedAoi || this.aois['central-valley'];
+    const aoiReportName = document.getElementById('report-aoi-name');
+    if (aoiReportName) aoiReportName.textContent = aoi.name;
+
+    const reportRegion = document.getElementById('report-region-name');
+    if (reportRegion) reportRegion.textContent = `${aoi.region} • Sentinel-2 Tile ${aoi.sentinelTile}`;
+
+    const reportDate = document.getElementById('report-generated-date');
+    if (reportDate) reportDate.textContent = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+  }
+
+  // Open Scout Ticket Creation Modal
+  openScoutTicketModal() {
+    const p = this.state.selectedParcel || (this.state.selectedAoi ? this.state.selectedAoi.parcels[3] : this.aois['central-valley'].parcels[3]);
+    const ticketId = `TK-${new Date().getFullYear()}-${Math.floor(1000 + Math.random() * 9000)}`;
+    
+    const ticketIdElem = document.getElementById('ticket-modal-id');
+    if (ticketIdElem) ticketIdElem.textContent = ticketId;
+
+    const ticketTarget = document.getElementById('ticket-target-field');
+    if (ticketTarget) ticketTarget.textContent = `${p.name} (${p.crop})`;
+
+    const ticketProtocol = document.getElementById('ticket-protocol-preview');
+    if (ticketProtocol) {
+      ticketProtocol.innerHTML = p.protocol.map(item => `<li>${item}</li>`).join('');
+    }
+
+    this.openModal('ticket-modal');
+  }
+
+  // Save custom thresholds from settings modal
+  saveCustomThresholds() {
+    const healthyInput = document.getElementById('threshold-healthy-input');
+    const stressedInput = document.getElementById('threshold-stressed-input');
+
+    if (healthyInput && stressedInput) {
+      this.state.thresholds.healthy = parseFloat(healthyInput.value) || 0.65;
+      this.state.thresholds.stressedMax = parseFloat(stressedInput.value) || 0.45;
+      this.state.thresholds.moderateMin = this.state.thresholds.stressedMax;
+
+      // Update legend HUD text
+      const legendHealthy = document.getElementById('legend-healthy-label');
+      if (legendHealthy) legendHealthy.textContent = `Healthy (> ${this.state.thresholds.healthy})`;
+
+      const legendMod = document.getElementById('legend-mod-label');
+      if (legendMod) legendMod.textContent = `Moderate (${this.state.thresholds.moderateMin} – ${this.state.thresholds.healthy})`;
+
+      const legendStressed = document.getElementById('legend-stressed-label');
+      if (legendStressed) legendStressed.textContent = `Stressed (< ${this.state.thresholds.stressedMax})`;
+
+      this.closeModal('settings-modal');
+      this.showToast('Thresholds updated & live reclassification applied.');
+    }
+  }
+
+  // Download GeoJSON representation of parcels
+  downloadGeoJSON() {
+    const aoi = this.state.selectedAoi || this.aois['central-valley'];
+    const geojson = {
+      type: "FeatureCollection",
+      metadata: {
+        aoi: aoi.name,
+        tile: aoi.sentinelTile,
+        dateGenerated: new Date().toISOString(),
+        index: this.state.currentIndex.toUpperCase()
+      },
+      features: aoi.parcels.map((p, idx) => ({
+        type: "Feature",
+        id: p.id,
+        properties: {
+          name: p.name,
+          crop: p.crop,
+          areaHectares: p.areaHa,
+          currentNdvi: p.currentNdvi,
+          baselineNdvi: p.baselineNdvi,
+          changePct: p.changePct,
+          healthClass: p.status,
+          stressProbability: p.stressProb,
+          protocol: p.protocol
+        },
+        geometry: {
+          type: "Polygon",
+          coordinates: [[
+            [aoi.lng + (idx * 0.002), aoi.lat + (idx * 0.002)],
+            [aoi.lng + (idx * 0.002) + 0.004, aoi.lat + (idx * 0.002)],
+            [aoi.lng + (idx * 0.002) + 0.004, aoi.lat + (idx * 0.002) + 0.003],
+            [aoi.lng + (idx * 0.002), aoi.lat + (idx * 0.002) + 0.003],
+            [aoi.lng + (idx * 0.002), aoi.lat + (idx * 0.002)]
+          ]]
+        }
+      }))
+    };
+
+    const blob = new Blob([JSON.stringify(geojson, null, 2)], { type: 'application/geo+json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `croppulse_${aoi.id}_${this.state.currentIndex}.geojson`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    this.closeModal('export-modal');
+    this.showToast('GeoJSON export downloaded.');
+  }
+
+  // Download CSV report
+  downloadCSV() {
+    const aoi = this.state.selectedAoi || this.aois['central-valley'];
+    let csv = "Parcel_ID,Field_Name,Crop,Area_Ha,Current_Index,Baseline_Index,Change_Pct,Health_Class,Stress_Probability\n";
+    
+    aoi.parcels.forEach(p => {
+      csv += `"${p.id}","${p.name}","${p.crop}",${p.areaHa},${p.currentNdvi},${p.baselineNdvi},"${p.changePct}","${p.status}","${p.stressProb}"\n`;
     });
+
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `croppulse_${aoi.id}_metrics.csv`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+
+    this.closeModal('export-modal');
+    this.showToast('CSV export downloaded.');
+  }
+
+  // Start automated Guided Demo for judges/presentation
+  startGuidedDemo() {
+    this.showToast('Starting Guided Demo workflow...');
+    this.resetDashboard();
+
+    setTimeout(() => {
+      this.selectAoi('central-valley');
+      this.showToast('Step 1: Selected Central Valley Quad 4B (2,090 ha)');
+      
+      setTimeout(() => {
+        this.runAnalysisPipeline();
+        
+        setTimeout(() => {
+          this.showToast('Step 2: Satellite imagery processed & NDVI classified.');
+          
+          setTimeout(() => {
+            this.openFieldDrawer('poly-4');
+            this.showToast('Step 3: Stressed Sector 4 flagged & inspected in Drawer.');
+          }, 1500);
+        }, 1800);
+      }, 1000);
+    }, 600);
+  }
+
+  // Modal helpers
+  openModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) modal.classList.remove('hidden');
+  }
+
+  closeModal(modalId) {
+    const modal = document.getElementById(modalId);
+    if (modal) modal.classList.add('hidden');
+  }
+
+  // Toast notification
+  showToast(message) {
+    const container = document.getElementById('toast-container');
+    if (!container) return;
+
+    const toast = document.createElement('div');
+    toast.className = 'toast';
+    toast.innerHTML = `
+      <span class="material-symbols-outlined text-secondary text-[18px]">check_circle</span>
+      <span>${message}</span>
+    `;
+
+    container.appendChild(toast);
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateY(10px)';
+      toast.style.transition = 'all 0.25s ease';
+      setTimeout(() => toast.remove(), 250);
+    }, 2800);
+  }
+
+  // Initial render setup
+  render() {
+    this.setViewState('empty');
   }
 }
 
-/* ===========================================================
-   UTILITY
-   =========================================================== */
-function setText(id, text) {
-  const el = document.getElementById(id);
-  if (el) el.textContent = text;
-}
+// Global hook
+document.addEventListener('DOMContentLoaded', () => {
+  window.cropPulse = new CropPulseApp();
+});

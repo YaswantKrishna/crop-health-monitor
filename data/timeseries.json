@@ -1,0 +1,86 @@
+{
+  "central-valley": {
+    "dates": ["May 01", "May 04", "May 08", "May 11", "May 14", "May 18"],
+    "current": {
+      "ndvi": [0.49, 0.55, 0.61, 0.65, 0.71, 0.64],
+      "ndre": [0.32, 0.36, 0.40, 0.43, 0.47, 0.42],
+      "evi": [0.39, 0.44, 0.49, 0.53, 0.58, 0.52]
+    },
+    "baseline": {
+      "ndvi": [0.52, 0.57, 0.59, 0.61, 0.63, 0.60],
+      "ndre": [0.34, 0.37, 0.39, 0.40, 0.41, 0.40],
+      "evi": [0.41, 0.45, 0.47, 0.49, 0.50, 0.49]
+    },
+    "points": [
+      { "date": "May 01", "current": 0.49, "baseline": 0.52, "phenology": "Early Tillering" },
+      { "date": "May 04", "current": 0.55, "baseline": 0.57, "phenology": "Stem Elongation" },
+      { "date": "May 08", "current": 0.61, "baseline": 0.59, "phenology": "Jointing Stage" },
+      { "date": "May 11", "current": 0.65, "baseline": 0.61, "phenology": "Booting Stage" },
+      { "date": "May 14", "current": 0.71, "baseline": 0.63, "phenology": "Peak Heading / Anthesis (Vigorous)" },
+      { "date": "May 18", "current": 0.64, "baseline": 0.60, "phenology": "Grain Fill (Localized Moisture Deficit Detected)" }
+    ]
+  },
+  "punjab-zone": {
+    "dates": ["Feb 15", "Feb 19", "Feb 23", "Feb 27", "Mar 02", "Mar 05"],
+    "current": {
+      "ndvi": [0.54, 0.62, 0.68, 0.73, 0.76, 0.71],
+      "ndre": [0.36, 0.42, 0.46, 0.50, 0.52, 0.49],
+      "evi": [0.43, 0.50, 0.55, 0.59, 0.62, 0.58]
+    },
+    "baseline": {
+      "ndvi": [0.55, 0.60, 0.64, 0.67, 0.70, 0.68],
+      "ndre": [0.37, 0.41, 0.44, 0.46, 0.48, 0.47],
+      "evi": [0.44, 0.48, 0.52, 0.54, 0.56, 0.55]
+    },
+    "points": [
+      { "date": "Feb 15", "current": 0.54, "baseline": 0.55, "phenology": "Late Jointing" },
+      { "date": "Feb 19", "current": 0.62, "baseline": 0.60, "phenology": "Booting / Flag Leaf" },
+      { "date": "Feb 23", "current": 0.68, "baseline": 0.64, "phenology": "Ear Head Emergence" },
+      { "date": "Feb 27", "current": 0.73, "baseline": 0.67, "phenology": "Flowering Peak" },
+      { "date": "Mar 02", "current": 0.76, "baseline": 0.70, "phenology": "Peak Milk Stage" },
+      { "date": "Mar 05", "current": 0.71, "baseline": 0.68, "phenology": "Early Dough Stage" }
+    ]
+  },
+  "kansas-belt": {
+    "dates": ["Jul 10", "Jul 14", "Jul 18", "Jul 21", "Jul 25", "Jul 28"],
+    "current": {
+      "ndvi": [0.63, 0.66, 0.65, 0.62, 0.59, 0.58],
+      "ndre": [0.42, 0.44, 0.43, 0.41, 0.39, 0.38],
+      "evi": [0.51, 0.54, 0.53, 0.50, 0.48, 0.47]
+    },
+    "baseline": {
+      "ndvi": [0.60, 0.63, 0.65, 0.66, 0.64, 0.62],
+      "ndre": [0.40, 0.42, 0.43, 0.44, 0.42, 0.41],
+      "evi": [0.49, 0.51, 0.53, 0.54, 0.52, 0.51]
+    },
+    "points": [
+      { "date": "Jul 10", "current": 0.63, "baseline": 0.60, "phenology": "V12 Vegetative Stage" },
+      { "date": "Jul 14", "current": 0.66, "baseline": 0.63, "phenology": "VT Tassel Emergence" },
+      { "date": "Jul 18", "current": 0.65, "baseline": 0.65, "phenology": "R1 Silking Beginning" },
+      { "date": "Jul 21", "current": 0.62, "baseline": 0.66, "phenology": "Heat Stress Inset (+38°C)" },
+      { "date": "Jul 25", "current": 0.59, "baseline": 0.64, "phenology": "Evapotranspiration Deficit" },
+      { "date": "Jul 28", "current": 0.58, "baseline": 0.62, "phenology": "Drydown & Leaf Firing Detected" }
+    ]
+  },
+  "nile-delta": {
+    "dates": ["Jun 01", "Jun 05", "Jun 09", "Jun 13", "Jun 17", "Jun 20"],
+    "current": {
+      "ndvi": [0.51, 0.57, 0.63, 0.68, 0.70, 0.66],
+      "ndre": [0.34, 0.38, 0.42, 0.45, 0.47, 0.44],
+      "evi": [0.41, 0.46, 0.51, 0.55, 0.57, 0.54]
+    },
+    "baseline": {
+      "ndvi": [0.50, 0.54, 0.58, 0.61, 0.64, 0.63],
+      "ndre": [0.33, 0.36, 0.39, 0.41, 0.43, 0.42],
+      "evi": [0.40, 0.43, 0.47, 0.49, 0.51, 0.52]
+    },
+    "points": [
+      { "date": "Jun 01", "current": 0.51, "baseline": 0.50, "phenology": "Early Vegetative" },
+      { "date": "Jun 05", "current": 0.57, "baseline": 0.54, "phenology": "Squaring Initiation" },
+      { "date": "Jun 09", "current": 0.63, "baseline": 0.58, "phenology": "Canopy Expansion" },
+      { "date": "Jun 13", "current": 0.68, "baseline": 0.61, "phenology": "Mid Squaring" },
+      { "date": "Jun 17", "current": 0.70, "baseline": 0.64, "phenology": "Peak Biomass" },
+      { "date": "Jun 20", "current": 0.66, "baseline": 0.63, "phenology": "Canopy Stabilization" }
+    ]
+  }
+}

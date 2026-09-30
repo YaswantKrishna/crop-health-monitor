@@ -49,18 +49,21 @@ def serve_index():
     index_file = FRONTEND_DIR / "index.html"
     return FileResponse(str(index_file))
 
-# Mount Frontend directory at root for relative imports (app.js, style.css)
-# This MUST be last — it acts as a catch-all for paths not matched above.
-app.mount("/", StaticFiles(directory=str(FRONTEND_DIR)), name="static")
-
 @app.get("/health")
+@app.get("/api/health")
 def health_check():
-    """Health check endpoint."""
+    """Health check endpoint for GEE and Earth Observation Engine."""
     return {
         "status": "healthy",
-        "system": "Crop Health Monitor",
+        "system": "CropPulse Earth Observation Engine",
+        "sentinelSatellite": "Sentinel-2 MSI",
+        "groundResolution": "10m",
         "version": "1.0.0"
     }
+
+# Mount Frontend directory at root for relative imports (app.js, styles.css)
+# This MUST be last — it acts as a catch-all for paths not matched above.
+app.mount("/", StaticFiles(directory=str(FRONTEND_DIR), html=True), name="static")
 
 if __name__ == "__main__":
     import uvicorn
