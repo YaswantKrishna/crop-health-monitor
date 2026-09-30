@@ -1,0 +1,360 @@
+{
+  "F-001": {
+    "field_id": "F-001",
+    "crop": "Paddy",
+    "area_ha": 2.6,
+    "status": "Healthy",
+    "stress_level": "Low",
+    "anomaly_score": 31.0,
+    "potential_factors": [
+      "Optimal moisture",
+      "Balanced fertilization"
+    ],
+    "recommendation": "Continue routine monitoring.",
+    "scientific_disclaimer": "Vegetation indices indicate relative canopy vigor and moisture reflectance; not a confirmed diagnosis of disease."
+  },
+  "F-002": {
+    "field_id": "F-002",
+    "crop": "Wheat",
+    "area_ha": 3.5,
+    "status": "Healthy",
+    "stress_level": "Low",
+    "anomaly_score": 30.0,
+    "potential_factors": [
+      "Optimal moisture",
+      "Balanced fertilization"
+    ],
+    "recommendation": "Continue routine monitoring.",
+    "scientific_disclaimer": "Vegetation indices indicate relative canopy vigor and moisture reflectance; not a confirmed diagnosis of disease."
+  },
+  "F-003": {
+    "field_id": "F-003",
+    "crop": "Maize",
+    "area_ha": 4.3,
+    "status": "Moderate",
+    "stress_level": "Moderate",
+    "anomaly_score": 45.0,
+    "potential_factors": [
+      "Canopy thinning",
+      "Delayed weeding",
+      "Nitrogen leaching"
+    ],
+    "recommendation": "Prioritize ground inspection to verify moisture and leaf symptoms.",
+    "scientific_disclaimer": "Vegetation indices indicate relative canopy vigor and moisture reflectance; not a confirmed diagnosis of disease."
+  },
+  "F-004": {
+    "field_id": "F-004",
+    "crop": "Cotton",
+    "area_ha": 2.2,
+    "status": "Potentially Stressed",
+    "stress_level": "High",
+    "anomaly_score": 60.0,
+    "potential_factors": [
+      "Soil moisture depletion",
+      "Irrigation pump breakdown",
+      "Localized foliar blight"
+    ],
+    "recommendation": "Prioritize ground inspection to verify moisture and leaf symptoms.",
+    "scientific_disclaimer": "Vegetation indices indicate relative canopy vigor and moisture reflectance; not a confirmed diagnosis of disease."
+  },
+  "F-005": {
+    "field_id": "F-005",
+    "crop": "Mustard",
+    "area_ha": 3.0,
+    "status": "Healthy",
+    "stress_level": "Low",
+    "anomaly_score": 26.0,
+    "potential_factors": [
+      "Optimal moisture",
+      "Balanced fertilization"
+    ],
+    "recommendation": "Continue routine monitoring.",
+    "scientific_disclaimer": "Vegetation indices indicate relative canopy vigor and moisture reflectance; not a confirmed diagnosis of disease."
+  },
+  "F-006": {
+    "field_id": "F-006",
+    "crop": "Soybean",
+    "area_ha": 3.8,
+    "status": "Healthy",
+    "stress_level": "Low",
+    "anomaly_score": 25.0,
+    "potential_factors": [
+      "Optimal moisture",
+      "Balanced fertilization"
+    ],
+    "recommendation": "Continue routine monitoring.",
+    "scientific_disclaimer": "Vegetation indices indicate relative canopy vigor and moisture reflectance; not a confirmed diagnosis of disease."
+  },
+  "F-007": {
+    "field_id": "F-007",
+    "crop": "Sugarcane",
+    "area_ha": 4.7,
+    "status": "Healthy",
+    "stress_level": "Low",
+    "anomaly_score": 24.0,
+    "potential_factors": [
+      "Optimal moisture",
+      "Balanced fertilization"
+    ],
+    "recommendation": "Continue routine monitoring.",
+    "scientific_disclaimer": "Vegetation indices indicate relative canopy vigor and moisture reflectance; not a confirmed diagnosis of disease."
+  },
+  "F-008": {
+    "field_id": "F-008",
+    "crop": "Alfalfa",
+    "area_ha": 2.5,
+    "status": "Moderate",
+    "stress_level": "Moderate",
+    "anomaly_score": 50.0,
+    "potential_factors": [
+      "Canopy thinning",
+      "Delayed weeding",
+      "Nitrogen leaching"
+    ],
+    "recommendation": "Prioritize ground inspection to verify moisture and leaf symptoms.",
+    "scientific_disclaimer": "Vegetation indices indicate relative canopy vigor and moisture reflectance; not a confirmed diagnosis of disease."
+  },
+  "F-009": {
+    "field_id": "F-009",
+    "crop": "Paddy",
+    "area_ha": 3.4,
+    "status": "Healthy",
+    "stress_level": "Low",
+    "anomaly_score": 21.0,
+    "potential_factors": [
+      "Optimal moisture",
+      "Balanced fertilization"
+    ],
+    "recommendation": "Continue routine monitoring.",
+    "scientific_disclaimer": "Vegetation indices indicate relative canopy vigor and moisture reflectance; not a confirmed diagnosis of disease."
+  },
+  "F-010": {
+    "field_id": "F-010",
+    "crop": "Wheat",
+    "area_ha": 4.2,
+    "status": "Healthy",
+    "stress_level": "Low",
+    "anomaly_score": 20.0,
+    "potential_factors": [
+      "Optimal moisture",
+      "Balanced fertilization"
+    ],
+    "recommendation": "Continue routine monitoring.",
+    "scientific_disclaimer": "Vegetation indices indicate relative canopy vigor and moisture reflectance; not a confirmed diagnosis of disease."
+  },
+  "F-011": {
+    "field_id": "F-011",
+    "crop": "Maize",
+    "area_ha": 2.0,
+    "status": "Healthy",
+    "stress_level": "Low",
+    "anomaly_score": 32.0,
+    "potential_factors": [
+      "Optimal moisture",
+      "Balanced fertilization"
+    ],
+    "recommendation": "Continue routine monitoring.",
+    "scientific_disclaimer": "Vegetation indices indicate relative canopy vigor and moisture reflectance; not a confirmed diagnosis of disease."
+  },
+  "F-012": {
+    "field_id": "F-012",
+    "crop": "Cotton",
+    "area_ha": 2.9,
+    "status": "Moderate",
+    "stress_level": "Moderate",
+    "anomaly_score": 44.0,
+    "potential_factors": [
+      "Canopy thinning",
+      "Delayed weeding",
+      "Nitrogen leaching"
+    ],
+    "recommendation": "Prioritize ground inspection to verify moisture and leaf symptoms.",
+    "scientific_disclaimer": "Vegetation indices indicate relative canopy vigor and moisture reflectance; not a confirmed diagnosis of disease."
+  },
+  "F-013": {
+    "field_id": "F-013",
+    "crop": "Mustard",
+    "area_ha": 3.7,
+    "status": "Potentially Stressed",
+    "stress_level": "High",
+    "anomaly_score": 62.0,
+    "potential_factors": [
+      "Soil moisture depletion",
+      "Irrigation pump breakdown",
+      "Localized foliar blight"
+    ],
+    "recommendation": "Prioritize ground inspection to verify moisture and leaf symptoms.",
+    "scientific_disclaimer": "Vegetation indices indicate relative canopy vigor and moisture reflectance; not a confirmed diagnosis of disease."
+  },
+  "F-014": {
+    "field_id": "F-014",
+    "crop": "Soybean",
+    "area_ha": 4.6,
+    "status": "Healthy",
+    "stress_level": "Low",
+    "anomaly_score": 28.0,
+    "potential_factors": [
+      "Optimal moisture",
+      "Balanced fertilization"
+    ],
+    "recommendation": "Continue routine monitoring.",
+    "scientific_disclaimer": "Vegetation indices indicate relative canopy vigor and moisture reflectance; not a confirmed diagnosis of disease."
+  },
+  "F-015": {
+    "field_id": "F-015",
+    "crop": "Sugarcane",
+    "area_ha": 2.4,
+    "status": "Healthy",
+    "stress_level": "Low",
+    "anomaly_score": 27.0,
+    "potential_factors": [
+      "Optimal moisture",
+      "Balanced fertilization"
+    ],
+    "recommendation": "Continue routine monitoring.",
+    "scientific_disclaimer": "Vegetation indices indicate relative canopy vigor and moisture reflectance; not a confirmed diagnosis of disease."
+  },
+  "F-016": {
+    "field_id": "F-016",
+    "crop": "Alfalfa",
+    "area_ha": 3.2,
+    "status": "Healthy",
+    "stress_level": "Low",
+    "anomaly_score": 26.0,
+    "potential_factors": [
+      "Optimal moisture",
+      "Balanced fertilization"
+    ],
+    "recommendation": "Continue routine monitoring.",
+    "scientific_disclaimer": "Vegetation indices indicate relative canopy vigor and moisture reflectance; not a confirmed diagnosis of disease."
+  },
+  "F-017": {
+    "field_id": "F-017",
+    "crop": "Paddy",
+    "area_ha": 4.1,
+    "status": "Moderate",
+    "stress_level": "Moderate",
+    "anomaly_score": 48.0,
+    "potential_factors": [
+      "Canopy thinning",
+      "Delayed weeding",
+      "Nitrogen leaching"
+    ],
+    "recommendation": "Prioritize ground inspection to verify moisture and leaf symptoms.",
+    "scientific_disclaimer": "Vegetation indices indicate relative canopy vigor and moisture reflectance; not a confirmed diagnosis of disease."
+  },
+  "F-018": {
+    "field_id": "F-018",
+    "crop": "Wheat",
+    "area_ha": 1.9,
+    "status": "Healthy",
+    "stress_level": "Low",
+    "anomaly_score": 24.0,
+    "potential_factors": [
+      "Optimal moisture",
+      "Balanced fertilization"
+    ],
+    "recommendation": "Continue routine monitoring.",
+    "scientific_disclaimer": "Vegetation indices indicate relative canopy vigor and moisture reflectance; not a confirmed diagnosis of disease."
+  },
+  "F-019": {
+    "field_id": "F-019",
+    "crop": "Maize",
+    "area_ha": 2.8,
+    "status": "Healthy",
+    "stress_level": "Low",
+    "anomaly_score": 22.0,
+    "potential_factors": [
+      "Optimal moisture",
+      "Balanced fertilization"
+    ],
+    "recommendation": "Continue routine monitoring.",
+    "scientific_disclaimer": "Vegetation indices indicate relative canopy vigor and moisture reflectance; not a confirmed diagnosis of disease."
+  },
+  "F-020": {
+    "field_id": "F-020",
+    "crop": "Cotton",
+    "area_ha": 3.6,
+    "status": "Healthy",
+    "stress_level": "Low",
+    "anomaly_score": 21.0,
+    "potential_factors": [
+      "Optimal moisture",
+      "Balanced fertilization"
+    ],
+    "recommendation": "Continue routine monitoring.",
+    "scientific_disclaimer": "Vegetation indices indicate relative canopy vigor and moisture reflectance; not a confirmed diagnosis of disease."
+  },
+  "F-021": {
+    "field_id": "F-021",
+    "crop": "Mustard",
+    "area_ha": 4.4,
+    "status": "Moderate",
+    "stress_level": "Moderate",
+    "anomaly_score": 43.0,
+    "potential_factors": [
+      "Canopy thinning",
+      "Delayed weeding",
+      "Nitrogen leaching"
+    ],
+    "recommendation": "Prioritize ground inspection to verify moisture and leaf symptoms.",
+    "scientific_disclaimer": "Vegetation indices indicate relative canopy vigor and moisture reflectance; not a confirmed diagnosis of disease."
+  },
+  "F-022": {
+    "field_id": "F-022",
+    "crop": "Soybean",
+    "area_ha": 2.3,
+    "status": "Potentially Stressed",
+    "stress_level": "High",
+    "anomaly_score": 64.0,
+    "potential_factors": [
+      "Soil moisture depletion",
+      "Irrigation pump breakdown",
+      "Localized foliar blight"
+    ],
+    "recommendation": "Prioritize ground inspection to verify moisture and leaf symptoms.",
+    "scientific_disclaimer": "Vegetation indices indicate relative canopy vigor and moisture reflectance; not a confirmed diagnosis of disease."
+  },
+  "F-023": {
+    "field_id": "F-023",
+    "crop": "Sugarcane",
+    "area_ha": 3.1,
+    "status": "Healthy",
+    "stress_level": "Low",
+    "anomaly_score": 31.0,
+    "potential_factors": [
+      "Optimal moisture",
+      "Balanced fertilization"
+    ],
+    "recommendation": "Continue routine monitoring.",
+    "scientific_disclaimer": "Vegetation indices indicate relative canopy vigor and moisture reflectance; not a confirmed diagnosis of disease."
+  },
+  "F-024": {
+    "field_id": "F-024",
+    "crop": "Alfalfa",
+    "area_ha": 4.0,
+    "status": "Healthy",
+    "stress_level": "Low",
+    "anomaly_score": 30.0,
+    "potential_factors": [
+      "Optimal moisture",
+      "Balanced fertilization"
+    ],
+    "recommendation": "Continue routine monitoring.",
+    "scientific_disclaimer": "Vegetation indices indicate relative canopy vigor and moisture reflectance; not a confirmed diagnosis of disease."
+  },
+  "F-025": {
+    "field_id": "F-025",
+    "crop": "Paddy",
+    "area_ha": 1.8,
+    "status": "Healthy",
+    "stress_level": "Low",
+    "anomaly_score": 28.0,
+    "potential_factors": [
+      "Optimal moisture",
+      "Balanced fertilization"
+    ],
+    "recommendation": "Continue routine monitoring.",
+    "scientific_disclaimer": "Vegetation indices indicate relative canopy vigor and moisture reflectance; not a confirmed diagnosis of disease."
+  }
+}

@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Crop Health Monitoring System — Agricultural Satellite Dashboard</title>
+
+  <!-- Google Fonts & Material Symbols -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet" />
+
+  <!-- Leaflet CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <!-- ============================================================ -->
+  <!-- APPLICATION HEADER -->
+  <!-- ============================================================ -->
+  <header class="app-header">
+    <div class="brand-group">
+      <div class="brand-icon">
+        <span class="material-symbols-outlined">satellite_alt</span>
+      </div>
+      <div>
+        <h1 class="font-heading" style="font-size: 1.15rem; font-weight: 700; line-height: 1.2;">
+          CROP HEALTH MONITORING SYSTEM
+        </h1>
+        <p style="font-size: 0.75rem; color: var(--text-muted);">
+          Agricultural Vegetation Index & Stress Detection Engine • Sentinel-2 MSI
+        </p>
+      </div>
+    </div>
+
+    <div class="header-status-pill">
+      <span class="pulse-dot"></span>
+      <span>Sentinel-2 • Google Earth Engine</span>
+    </div>
+  </header>
+
+  <!-- ============================================================ -->
+  <!-- MAIN DASHBOARD CONTENT -->
+  <!-- ============================================================ -->
+  <main class="dashboard-container">
+
+    <!-- KPI Summary Bar (Matches PRD Section 11 Specification) -->
+    <section class="kpi-summary-row">
+      <!-- Card 1: Total Fields -->
+      <div class="kpi-card">
+        <span class="kpi-label">Total Fields</span>
+        <div class="kpi-value-group">
+          <span id="kpi-total-fields" class="kpi-val" style="color: var(--dark-green);">25</span>
+          <span style="font-size: 0.75rem; color: var(--text-muted); font-family: monospace;">parcels</span>
+        </div>
+        <span style="font-size: 0.7rem; color: var(--text-light); margin-top: 0.25rem;">Agricultural AOI Cadastre</span>
+      </div>
+
+      <!-- Card 2: Healthy Fields -->
+      <div class="kpi-card">
+        <span class="kpi-label" style="color: var(--healthy);">Healthy</span>
+        <div class="kpi-value-group">
+          <span id="kpi-healthy-pct" class="kpi-val" style="color: var(--healthy);">68%</span>
+          <span id="kpi-healthy-count" style="font-size: 0.75rem; color: var(--text-muted); font-family: monospace;">17 fields</span>
+        </div>
+        <span style="font-size: 0.7rem; color: var(--healthy); margin-top: 0.25rem;">NDVI &gt; 0.65 (Optimal Canopy)</span>
+      </div>
+
+      <!-- Card 3: Moderate Fields -->
+      <div class="kpi-card">
+        <span class="kpi-label" style="color: var(--moderate);">Moderate</span>
+        <div class="kpi-value-group">
+          <span id="kpi-moderate-pct" class="kpi-val" style="color: var(--moderate);">21%</span>
+          <span id="kpi-moderate-count" style="font-size: 0.75rem; color: var(--text-muted); font-family: monospace;">5 fields</span>
+        </div>
+        <span style="font-size: 0.7rem; color: var(--moderate); margin-top: 0.25rem;">0.45 – 0.65 (Transition State)</span>
+      </div>
+
+      <!-- Card 4: Potential Stress -->
+      <div class="kpi-card">
+        <span class="kpi-label" style="color: var(--stressed);">Potential Stress</span>
+        <div class="kpi-value-group">
+          <span id="kpi-stressed-pct" class="kpi-val" style="color: var(--stressed);">11%</span>
+          <span id="kpi-stressed-count" style="font-size: 0.75rem; color: var(--text-muted); font-family: monospace;">3 fields</span>
+        </div>
+        <span style="font-size: 0.7rem; color: var(--stressed); margin-top: 0.25rem;">NDVI &lt; 0.45 (Ground Scout Priority)</span>
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- INTERACTIVE AGRICULTURAL MAP COMPONENT -->
+    <!-- ============================================================ -->
+    <section class="map-wrapper" id="map-section">
+      <!-- Leaflet Map Container -->
+      <div id="map"></div>
+
+      <!-- Floating Map Control Panel -->
+      <div class="map-control-panel">
+        <div class="panel-section-title">Map Layers</div>
+        <div class="layer-list">
+          <label class="layer-option">
+            <input type="checkbox" id="layer-cadastral" checked />
+            <span>Cadastral (Boundaries)</span>
+          </label>
+          <label class="layer-option">
+            <input type="radio" name="base-layer" id="layer-satellite" value="satellite" checked />
+            <span>Satellite Imagery</span>
+          </label>
+          <label class="layer-option">
+            <input type="radio" name="base-layer" id="layer-rgb" value="rgb" />
+            <span>RGB (Natural Color)</span>
+          </label>
+          <label class="layer-option">
+            <input type="radio" name="base-layer" id="layer-ndvi" value="ndvi" />
+            <span>NDVI (Vegetation Index)</span>
+          </label>
+          <label class="layer-option">
+            <input type="radio" name="base-layer" id="layer-ndre" value="ndre" />
+            <span>NDRE (Chlorophyll)</span>
+          </label>
+          <label class="layer-option">
+            <input type="radio" name="base-layer" id="layer-stress" value="stress" />
+            <span>Crop Stress (Health)</span>
+          </label>
+        </div>
+
+        <div class="panel-section-title" style="margin-top: 0.25rem;">Map Controls</div>
+        <div class="map-buttons-grid">
+          <button type="button" class="map-btn" id="btn-zoom-in" title="Zoom In">
+            <span class="material-symbols-outlined" style="font-size: 16px;">add</span>
+            <span>Zoom +</span>
+          </button>
+          <button type="button" class="map-btn" id="btn-zoom-out" title="Zoom Out">
+            <span class="material-symbols-outlined" style="font-size: 16px;">remove</span>
+            <span>Zoom −</span>
+          </button>
+          <button type="button" class="map-btn" id="btn-reset" title="Reset View">
+            <span class="material-symbols-outlined" style="font-size: 16px;">home</span>
+            <span>Reset</span>
+          </button>
+          <button type="button" class="map-btn" id="btn-fullscreen" title="Toggle Fullscreen">
+            <span class="material-symbols-outlined" style="font-size: 16px;">fullscreen</span>
+            <span>Full Screen</span>
+          </button>
+          <button type="button" class="map-btn primary" id="btn-fit-field" title="Fit Map to Selected Field">
+            <span class="material-symbols-outlined" style="font-size: 16px;">my_location</span>
+            <span>Fit Field</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Floating Dynamic Map Legend (Updates according to active layer) -->
+      <div class="map-legend" id="dynamic-legend">
+        <!-- Dynamically injected via app.js -->
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- FIELD ANALYSIS & TEMPORAL COMPARISON SECTION -->
+    <!-- ============================================================ -->
+    <section class="field-detail-section">
+
+      <!-- Field Analysis Card -->
+      <div class="field-card">
+        <div class="field-card-header">
+          <div>
+            <span style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-light);">
+              Field Analysis
+            </span>
+            <h2 id="card-field-id" style="font-size: 1.25rem; font-weight: 700; margin-top: 0.15rem;">
+              F-001
+            </h2>
+            <p id="card-field-name" style="font-size: 0.75rem; color: var(--text-muted);">
+              Parcel 01 • Paddy (2.4 ha)
+            </p>
+          </div>
+
+          <div id="card-status-badge" class="field-status-badge healthy">
+            <span id="card-status-icon">🟢</span>
+            <span id="card-status-text">Healthy</span>
+          </div>
+        </div>
+
+        <!-- Metrics Grid -->
+        <div class="metrics-grid">
+          <div class="metric-box">
+            <span class="metric-box-label">Area Extent</span>
+            <div id="card-area" class="metric-box-val">2.4 ha</div>
+          </div>
+          <div class="metric-box">
+            <span class="metric-box-label">Mean NDVI</span>
+            <div id="card-ndvi" class="metric-box-val" style="color: var(--healthy);">0.68</div>
+          </div>
+          <div class="metric-box">
+            <span class="metric-box-label">Mean NDRE</span>
+            <div id="card-ndre" class="metric-box-val">0.47</div>
+          </div>
+        </div>
+
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 0.5rem 0.75rem; background: var(--muted-bg); border-radius: 0.5rem; font-size: 0.8rem;">
+          <span style="color: var(--text-muted);">Potential Stress Level:</span>
+          <span id="card-stress-level" style="font-weight: 700; color: var(--healthy);">Low (Stable Canopy)</span>
+        </div>
+
+        <p style="font-size: 0.7rem; color: var(--text-light); line-height: 1.4; border-top: 1px solid var(--border-color); padding-top: 0.5rem;">
+          <strong>Scientific Notice:</strong> Vegetation indices indicate relative canopy vigor and moisture reflectance; not a confirmed diagnosis of specific disease or pest. Field verification is required.
+        </p>
+      </div>
+
+      <!-- Time Comparison Card -->
+      <div class="timeseries-card">
+        <div style="display: flex; align-items: center; justify-content: space-between;">
+          <div>
+            <span style="font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-light);">
+              Temporal Monitoring
+            </span>
+            <h3 style="font-size: 1.1rem; font-weight: 700; margin-top: 0.15rem;">
+              Crop Health Over Time
+            </h3>
+          </div>
+          <span style="font-size: 0.75rem; color: var(--text-muted); font-family: monospace;">August – October 2024</span>
+        </div>
+
+        <!-- Decline Alert Banner -->
+        <div id="decline-banner" class="decline-warning-banner stable">
+          <span class="material-symbols-outlined" id="decline-banner-icon" style="font-size: 18px;">check_circle</span>
+          <span id="decline-banner-text">Crop condition is stable across observation windows.</span>
+        </div>
+
+        <!-- SVG Line Chart Container -->
+        <div class="chart-container">
+          <svg id="timeseries-chart-svg" width="100%" height="100%" viewBox="0 0 450 140" preserveAspectRatio="none">
+            <!-- Gridlines -->
+            <line x1="40" y1="20" x2="440" y2="20" stroke="#f4f3ef" stroke-width="1.5"></line>
+            <text x="32" y="24" fill="#9ca3af" font-size="10" text-anchor="end" font-family="monospace">0.8</text>
+
+            <line x1="40" y1="60" x2="440" y2="60" stroke="#f4f3ef" stroke-width="1.5"></line>
+            <text x="32" y="64" fill="#9ca3af" font-size="10" text-anchor="end" font-family="monospace">0.6</text>
+
+            <line x1="40" y1="100" x2="440" y2="100" stroke="#f4f3ef" stroke-width="1.5"></line>
+            <text x="32" y="104" fill="#9ca3af" font-family="monospace" font-size="10" text-anchor="end">0.4</text>
+
+            <!-- Gradient Area Fill -->
+            <defs>
+              <linearGradient id="chart-fill-grad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#2d6a4f" stop-opacity="0.25"></stop>
+                <stop offset="100%" stop-color="#2d6a4f" stop-opacity="0.0"></stop>
+              </linearGradient>
+            </defs>
+            <path id="chart-area-path" d="" fill="url(#chart-fill-grad)"></path>
+
+            <!-- Line Path -->
+            <path id="chart-line-path" d="" fill="none" stroke="#1b4332" stroke-width="2.5"></path>
+
+            <!-- Points & Markers Group -->
+            <g id="chart-points-group"></g>
+          </svg>
+        </div>
+
+        <!-- Observation Values Bar -->
+        <div style="display: flex; justify-content: space-around; font-size: 0.75rem; border-top: 1px solid var(--border-color); padding-top: 0.5rem; font-family: monospace;">
+          <div>August: <strong id="val-aug">0.64</strong></div>
+          <div>September: <strong id="val-sep">0.70</strong></div>
+          <div>October: <strong id="val-oct" style="color: var(--healthy);">0.68</strong></div>
+        </div>
+      </div>
+
+    </section>
+
+  </main>
+
+  <!-- ============================================================ -->
+  <!-- FOOTER -->
+  <!-- ============================================================ -->
+  <footer class="app-footer">
+    <div>
+      <span>Sentinel-2 Level-2A BOA Surface Reflectance • Cadastral Parcel Map</span>
+    </div>
+    <div style="font-family: monospace;">
+      Crop Health Monitor • Agricultural Sustainability Domain 3.1
+    </div>
+  </footer>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+
+  <!-- Main Application Logic -->
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,1061 @@
+{
+  "type": "FeatureCollection",
+  "metadata": {
+    "total_fields": 25,
+    "region": "Agricultural Demo Quad",
+    "coordinate_system": "EPSG:4326",
+    "disclaimer": "Sample agricultural boundaries for prototype testing."
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "field_id": "F-001",
+        "field_name": "Parcel 01",
+        "crop": "Paddy",
+        "area_ha": 2.6,
+        "farmer_name": "Gurpreet Singh",
+        "ndvi": 0.69,
+        "ndre": 0.47,
+        "status": "Healthy",
+        "stress_level": "Low",
+        "sample_disclaimer": "Demo boundary for testing. Not official cadastral record."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.85,
+              30.902
+            ],
+            [
+              75.8546,
+              30.902
+            ],
+            [
+              75.8546,
+              30.90515
+            ],
+            [
+              75.85,
+              30.90515
+            ],
+            [
+              75.85,
+              30.902
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "field_id": "F-002",
+        "field_name": "Parcel 02",
+        "crop": "Wheat",
+        "area_ha": 3.5,
+        "farmer_name": "Harinder Kaur",
+        "ndvi": 0.7,
+        "ndre": 0.48,
+        "status": "Healthy",
+        "stress_level": "Low",
+        "sample_disclaimer": "Demo boundary for testing. Not official cadastral record."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.855,
+              30.9022
+            ],
+            [
+              75.8596,
+              30.9022
+            ],
+            [
+              75.8596,
+              30.90535
+            ],
+            [
+              75.855,
+              30.90535
+            ],
+            [
+              75.855,
+              30.9022
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "field_id": "F-003",
+        "field_name": "Parcel 03",
+        "crop": "Maize",
+        "area_ha": 4.3,
+        "farmer_name": "Amandeep Singh",
+        "ndvi": 0.55,
+        "ndre": 0.39,
+        "status": "Moderate",
+        "stress_level": "Moderate",
+        "sample_disclaimer": "Demo boundary for testing. Not official cadastral record."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.86,
+              30.902
+            ],
+            [
+              75.8646,
+              30.902
+            ],
+            [
+              75.8646,
+              30.90515
+            ],
+            [
+              75.86,
+              30.90515
+            ],
+            [
+              75.86,
+              30.902
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "field_id": "F-004",
+        "field_name": "Parcel 04",
+        "crop": "Cotton",
+        "area_ha": 2.2,
+        "farmer_name": "Rajinder Kumar",
+        "ndvi": 0.4,
+        "ndre": 0.2,
+        "status": "Potentially Stressed",
+        "stress_level": "High",
+        "sample_disclaimer": "Demo boundary for testing. Not official cadastral record."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.865,
+              30.9022
+            ],
+            [
+              75.8696,
+              30.9022
+            ],
+            [
+              75.8696,
+              30.90535
+            ],
+            [
+              75.865,
+              30.90535
+            ],
+            [
+              75.865,
+              30.9022
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "field_id": "F-005",
+        "field_name": "Parcel 05",
+        "crop": "Mustard",
+        "area_ha": 3.0,
+        "farmer_name": "Sukhdev Singh",
+        "ndvi": 0.74,
+        "ndre": 0.52,
+        "status": "Healthy",
+        "stress_level": "Low",
+        "sample_disclaimer": "Demo boundary for testing. Not official cadastral record."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.87,
+              30.902
+            ],
+            [
+              75.8746,
+              30.902
+            ],
+            [
+              75.8746,
+              30.90515
+            ],
+            [
+              75.87,
+              30.90515
+            ],
+            [
+              75.87,
+              30.902
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "field_id": "F-006",
+        "field_name": "Parcel 06",
+        "crop": "Soybean",
+        "area_ha": 3.8,
+        "farmer_name": "Manjit Singh",
+        "ndvi": 0.75,
+        "ndre": 0.53,
+        "status": "Healthy",
+        "stress_level": "Low",
+        "sample_disclaimer": "Demo boundary for testing. Not official cadastral record."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8503,
+              30.9057
+            ],
+            [
+              75.8549,
+              30.9057
+            ],
+            [
+              75.8549,
+              30.90885
+            ],
+            [
+              75.8503,
+              30.90885
+            ],
+            [
+              75.8503,
+              30.9057
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "field_id": "F-007",
+        "field_name": "Parcel 07",
+        "crop": "Sugarcane",
+        "area_ha": 4.7,
+        "farmer_name": "Balwinder Kaur",
+        "ndvi": 0.76,
+        "ndre": 0.54,
+        "status": "Healthy",
+        "stress_level": "Low",
+        "sample_disclaimer": "Demo boundary for testing. Not official cadastral record."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8553,
+              30.9055
+            ],
+            [
+              75.8599,
+              30.9055
+            ],
+            [
+              75.8599,
+              30.90865
+            ],
+            [
+              75.8553,
+              30.90865
+            ],
+            [
+              75.8553,
+              30.9055
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "field_id": "F-008",
+        "field_name": "Parcel 08",
+        "crop": "Alfalfa",
+        "area_ha": 2.5,
+        "farmer_name": "Jaspreet Singh",
+        "ndvi": 0.5,
+        "ndre": 0.37,
+        "status": "Moderate",
+        "stress_level": "Moderate",
+        "sample_disclaimer": "Demo boundary for testing. Not official cadastral record."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8603,
+              30.9057
+            ],
+            [
+              75.8649,
+              30.9057
+            ],
+            [
+              75.8649,
+              30.90885
+            ],
+            [
+              75.8603,
+              30.90885
+            ],
+            [
+              75.8603,
+              30.9057
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "field_id": "F-009",
+        "field_name": "Parcel 09",
+        "crop": "Paddy",
+        "area_ha": 3.4,
+        "farmer_name": "Gurpreet Singh",
+        "ndvi": 0.79,
+        "ndre": 0.46,
+        "status": "Healthy",
+        "stress_level": "Low",
+        "sample_disclaimer": "Demo boundary for testing. Not official cadastral record."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8653,
+              30.9055
+            ],
+            [
+              75.8699,
+              30.9055
+            ],
+            [
+              75.8699,
+              30.90865
+            ],
+            [
+              75.8653,
+              30.90865
+            ],
+            [
+              75.8653,
+              30.9055
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "field_id": "F-010",
+        "field_name": "Parcel 10",
+        "crop": "Wheat",
+        "area_ha": 4.2,
+        "farmer_name": "Harinder Kaur",
+        "ndvi": 0.8,
+        "ndre": 0.47,
+        "status": "Healthy",
+        "stress_level": "Low",
+        "sample_disclaimer": "Demo boundary for testing. Not official cadastral record."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8703,
+              30.9057
+            ],
+            [
+              75.8749,
+              30.9057
+            ],
+            [
+              75.8749,
+              30.90885
+            ],
+            [
+              75.8703,
+              30.90885
+            ],
+            [
+              75.8703,
+              30.9057
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "field_id": "F-011",
+        "field_name": "Parcel 11",
+        "crop": "Maize",
+        "area_ha": 2.0,
+        "farmer_name": "Amandeep Singh",
+        "ndvi": 0.68,
+        "ndre": 0.48,
+        "status": "Healthy",
+        "stress_level": "Low",
+        "sample_disclaimer": "Demo boundary for testing. Not official cadastral record."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.85,
+              30.909
+            ],
+            [
+              75.8546,
+              30.909
+            ],
+            [
+              75.8546,
+              30.91215
+            ],
+            [
+              75.85,
+              30.91215
+            ],
+            [
+              75.85,
+              30.909
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "field_id": "F-012",
+        "field_name": "Parcel 12",
+        "crop": "Cotton",
+        "area_ha": 2.9,
+        "farmer_name": "Rajinder Kumar",
+        "ndvi": 0.56,
+        "ndre": 0.34,
+        "status": "Moderate",
+        "stress_level": "Moderate",
+        "sample_disclaimer": "Demo boundary for testing. Not official cadastral record."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.855,
+              30.9092
+            ],
+            [
+              75.8596,
+              30.9092
+            ],
+            [
+              75.8596,
+              30.91235
+            ],
+            [
+              75.855,
+              30.91235
+            ],
+            [
+              75.855,
+              30.9092
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "field_id": "F-013",
+        "field_name": "Parcel 13",
+        "crop": "Mustard",
+        "area_ha": 3.7,
+        "farmer_name": "Sukhdev Singh",
+        "ndvi": 0.38,
+        "ndre": 0.22,
+        "status": "Potentially Stressed",
+        "stress_level": "High",
+        "sample_disclaimer": "Demo boundary for testing. Not official cadastral record."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.86,
+              30.909
+            ],
+            [
+              75.8646,
+              30.909
+            ],
+            [
+              75.8646,
+              30.91215
+            ],
+            [
+              75.86,
+              30.91215
+            ],
+            [
+              75.86,
+              30.909
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "field_id": "F-014",
+        "field_name": "Parcel 14",
+        "crop": "Soybean",
+        "area_ha": 4.6,
+        "farmer_name": "Manjit Singh",
+        "ndvi": 0.72,
+        "ndre": 0.52,
+        "status": "Healthy",
+        "stress_level": "Low",
+        "sample_disclaimer": "Demo boundary for testing. Not official cadastral record."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.865,
+              30.9092
+            ],
+            [
+              75.8696,
+              30.9092
+            ],
+            [
+              75.8696,
+              30.91235
+            ],
+            [
+              75.865,
+              30.91235
+            ],
+            [
+              75.865,
+              30.9092
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "field_id": "F-015",
+        "field_name": "Parcel 15",
+        "crop": "Sugarcane",
+        "area_ha": 2.4,
+        "farmer_name": "Balwinder Kaur",
+        "ndvi": 0.73,
+        "ndre": 0.53,
+        "status": "Healthy",
+        "stress_level": "Low",
+        "sample_disclaimer": "Demo boundary for testing. Not official cadastral record."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.87,
+              30.909
+            ],
+            [
+              75.8746,
+              30.909
+            ],
+            [
+              75.8746,
+              30.91215
+            ],
+            [
+              75.87,
+              30.91215
+            ],
+            [
+              75.87,
+              30.909
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "field_id": "F-016",
+        "field_name": "Parcel 16",
+        "crop": "Alfalfa",
+        "area_ha": 3.2,
+        "farmer_name": "Jaspreet Singh",
+        "ndvi": 0.74,
+        "ndre": 0.54,
+        "status": "Healthy",
+        "stress_level": "Low",
+        "sample_disclaimer": "Demo boundary for testing. Not official cadastral record."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8503,
+              30.9127
+            ],
+            [
+              75.8549,
+              30.9127
+            ],
+            [
+              75.8549,
+              30.91585
+            ],
+            [
+              75.8503,
+              30.91585
+            ],
+            [
+              75.8503,
+              30.9127
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "field_id": "F-017",
+        "field_name": "Parcel 17",
+        "crop": "Paddy",
+        "area_ha": 4.1,
+        "farmer_name": "Gurpreet Singh",
+        "ndvi": 0.52,
+        "ndre": 0.42,
+        "status": "Moderate",
+        "stress_level": "Moderate",
+        "sample_disclaimer": "Demo boundary for testing. Not official cadastral record."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8553,
+              30.9125
+            ],
+            [
+              75.8599,
+              30.9125
+            ],
+            [
+              75.8599,
+              30.91565
+            ],
+            [
+              75.8553,
+              30.91565
+            ],
+            [
+              75.8553,
+              30.9125
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "field_id": "F-018",
+        "field_name": "Parcel 18",
+        "crop": "Wheat",
+        "area_ha": 1.9,
+        "farmer_name": "Harinder Kaur",
+        "ndvi": 0.76,
+        "ndre": 0.46,
+        "status": "Healthy",
+        "stress_level": "Low",
+        "sample_disclaimer": "Demo boundary for testing. Not official cadastral record."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8603,
+              30.9127
+            ],
+            [
+              75.8649,
+              30.9127
+            ],
+            [
+              75.8649,
+              30.91585
+            ],
+            [
+              75.8603,
+              30.91585
+            ],
+            [
+              75.8603,
+              30.9127
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "field_id": "F-019",
+        "field_name": "Parcel 19",
+        "crop": "Maize",
+        "area_ha": 2.8,
+        "farmer_name": "Amandeep Singh",
+        "ndvi": 0.78,
+        "ndre": 0.47,
+        "status": "Healthy",
+        "stress_level": "Low",
+        "sample_disclaimer": "Demo boundary for testing. Not official cadastral record."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8653,
+              30.9125
+            ],
+            [
+              75.8699,
+              30.9125
+            ],
+            [
+              75.8699,
+              30.91565
+            ],
+            [
+              75.8653,
+              30.91565
+            ],
+            [
+              75.8653,
+              30.9125
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "field_id": "F-020",
+        "field_name": "Parcel 20",
+        "crop": "Cotton",
+        "area_ha": 3.6,
+        "farmer_name": "Rajinder Kumar",
+        "ndvi": 0.79,
+        "ndre": 0.48,
+        "status": "Healthy",
+        "stress_level": "Low",
+        "sample_disclaimer": "Demo boundary for testing. Not official cadastral record."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.8703,
+              30.9127
+            ],
+            [
+              75.8749,
+              30.9127
+            ],
+            [
+              75.8749,
+              30.91585
+            ],
+            [
+              75.8703,
+              30.91585
+            ],
+            [
+              75.8703,
+              30.9127
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "field_id": "F-021",
+        "field_name": "Parcel 21",
+        "crop": "Mustard",
+        "area_ha": 4.4,
+        "farmer_name": "Sukhdev Singh",
+        "ndvi": 0.57,
+        "ndre": 0.39,
+        "status": "Moderate",
+        "stress_level": "Moderate",
+        "sample_disclaimer": "Demo boundary for testing. Not official cadastral record."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.85,
+              30.916
+            ],
+            [
+              75.8546,
+              30.916
+            ],
+            [
+              75.8546,
+              30.91915
+            ],
+            [
+              75.85,
+              30.91915
+            ],
+            [
+              75.85,
+              30.916
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "field_id": "F-022",
+        "field_name": "Parcel 22",
+        "crop": "Soybean",
+        "area_ha": 2.3,
+        "farmer_name": "Manjit Singh",
+        "ndvi": 0.36,
+        "ndre": 0.24,
+        "status": "Potentially Stressed",
+        "stress_level": "High",
+        "sample_disclaimer": "Demo boundary for testing. Not official cadastral record."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.855,
+              30.9162
+            ],
+            [
+              75.8596,
+              30.9162
+            ],
+            [
+              75.8596,
+              30.91935
+            ],
+            [
+              75.855,
+              30.91935
+            ],
+            [
+              75.855,
+              30.9162
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "field_id": "F-023",
+        "field_name": "Parcel 23",
+        "crop": "Sugarcane",
+        "area_ha": 3.1,
+        "farmer_name": "Balwinder Kaur",
+        "ndvi": 0.69,
+        "ndre": 0.52,
+        "status": "Healthy",
+        "stress_level": "Low",
+        "sample_disclaimer": "Demo boundary for testing. Not official cadastral record."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.86,
+              30.916
+            ],
+            [
+              75.8646,
+              30.916
+            ],
+            [
+              75.8646,
+              30.91915
+            ],
+            [
+              75.86,
+              30.91915
+            ],
+            [
+              75.86,
+              30.916
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "field_id": "F-024",
+        "field_name": "Parcel 24",
+        "crop": "Alfalfa",
+        "area_ha": 4.0,
+        "farmer_name": "Jaspreet Singh",
+        "ndvi": 0.7,
+        "ndre": 0.53,
+        "status": "Healthy",
+        "stress_level": "Low",
+        "sample_disclaimer": "Demo boundary for testing. Not official cadastral record."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.865,
+              30.9162
+            ],
+            [
+              75.8696,
+              30.9162
+            ],
+            [
+              75.8696,
+              30.91935
+            ],
+            [
+              75.865,
+              30.91935
+            ],
+            [
+              75.865,
+              30.9162
+            ]
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "field_id": "F-025",
+        "field_name": "Parcel 25",
+        "crop": "Paddy",
+        "area_ha": 1.8,
+        "farmer_name": "Gurpreet Singh",
+        "ndvi": 0.72,
+        "ndre": 0.54,
+        "status": "Healthy",
+        "stress_level": "Low",
+        "sample_disclaimer": "Demo boundary for testing. Not official cadastral record."
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              75.87,
+              30.916
+            ],
+            [
+              75.8746,
+              30.916
+            ],
+            [
+              75.8746,
+              30.91915
+            ],
+            [
+              75.87,
+              30.91915
+            ],
+            [
+              75.87,
+              30.916
+            ]
+          ]
+        ]
+      }
+    }
+  ]
+}

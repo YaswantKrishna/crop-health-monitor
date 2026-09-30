@@ -1,0 +1,527 @@
+{
+  "F-001": {
+    "field_id": "F-001",
+    "crop": "Paddy",
+    "area_ha": 2.6,
+    "ndvi_mean": 0.69,
+    "ndvi_min": 0.63,
+    "ndvi_max": 0.74,
+    "status": "Healthy",
+    "formula": "NDVI = (NIR - RED) / (NIR + RED)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RED": "Sentinel-2 B4"
+    },
+    "historical": {
+      "August": 0.65,
+      "September": 0.71,
+      "October": 0.69
+    },
+    "decline_detected": false,
+    "decline_warning": "Vegetation vigor remains stable within optimal envelope"
+  },
+  "F-002": {
+    "field_id": "F-002",
+    "crop": "Wheat",
+    "area_ha": 3.5,
+    "ndvi_mean": 0.7,
+    "ndvi_min": 0.64,
+    "ndvi_max": 0.75,
+    "status": "Healthy",
+    "formula": "NDVI = (NIR - RED) / (NIR + RED)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RED": "Sentinel-2 B4"
+    },
+    "historical": {
+      "August": 0.66,
+      "September": 0.72,
+      "October": 0.7
+    },
+    "decline_detected": false,
+    "decline_warning": "Vegetation vigor remains stable within optimal envelope"
+  },
+  "F-003": {
+    "field_id": "F-003",
+    "crop": "Maize",
+    "area_ha": 4.3,
+    "ndvi_mean": 0.55,
+    "ndvi_min": 0.49,
+    "ndvi_max": 0.6,
+    "status": "Moderate",
+    "formula": "NDVI = (NIR - RED) / (NIR + RED)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RED": "Sentinel-2 B4"
+    },
+    "historical": {
+      "August": 0.67,
+      "September": 0.6,
+      "October": 0.55
+    },
+    "decline_detected": true,
+    "decline_warning": "\u26a0\ufe0f Mild decline in crop canopy density"
+  },
+  "F-004": {
+    "field_id": "F-004",
+    "crop": "Cotton",
+    "area_ha": 2.2,
+    "ndvi_mean": 0.4,
+    "ndvi_min": 0.34,
+    "ndvi_max": 0.45,
+    "status": "Potentially Stressed",
+    "formula": "NDVI = (NIR - RED) / (NIR + RED)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RED": "Sentinel-2 B4"
+    },
+    "historical": {
+      "August": 0.7,
+      "September": 0.56,
+      "October": 0.4
+    },
+    "decline_detected": true,
+    "decline_warning": "\u26a0\ufe0f Potential decline in crop condition (-40% drop)"
+  },
+  "F-005": {
+    "field_id": "F-005",
+    "crop": "Mustard",
+    "area_ha": 3.0,
+    "ndvi_mean": 0.74,
+    "ndvi_min": 0.68,
+    "ndvi_max": 0.79,
+    "status": "Healthy",
+    "formula": "NDVI = (NIR - RED) / (NIR + RED)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RED": "Sentinel-2 B4"
+    },
+    "historical": {
+      "August": 0.7,
+      "September": 0.76,
+      "October": 0.74
+    },
+    "decline_detected": false,
+    "decline_warning": "Vegetation vigor remains stable within optimal envelope"
+  },
+  "F-006": {
+    "field_id": "F-006",
+    "crop": "Soybean",
+    "area_ha": 3.8,
+    "ndvi_mean": 0.75,
+    "ndvi_min": 0.69,
+    "ndvi_max": 0.8,
+    "status": "Healthy",
+    "formula": "NDVI = (NIR - RED) / (NIR + RED)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RED": "Sentinel-2 B4"
+    },
+    "historical": {
+      "August": 0.71,
+      "September": 0.77,
+      "October": 0.75
+    },
+    "decline_detected": false,
+    "decline_warning": "Vegetation vigor remains stable within optimal envelope"
+  },
+  "F-007": {
+    "field_id": "F-007",
+    "crop": "Sugarcane",
+    "area_ha": 4.7,
+    "ndvi_mean": 0.76,
+    "ndvi_min": 0.7,
+    "ndvi_max": 0.81,
+    "status": "Healthy",
+    "formula": "NDVI = (NIR - RED) / (NIR + RED)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RED": "Sentinel-2 B4"
+    },
+    "historical": {
+      "August": 0.72,
+      "September": 0.78,
+      "October": 0.76
+    },
+    "decline_detected": false,
+    "decline_warning": "Vegetation vigor remains stable within optimal envelope"
+  },
+  "F-008": {
+    "field_id": "F-008",
+    "crop": "Alfalfa",
+    "area_ha": 2.5,
+    "ndvi_mean": 0.5,
+    "ndvi_min": 0.44,
+    "ndvi_max": 0.55,
+    "status": "Moderate",
+    "formula": "NDVI = (NIR - RED) / (NIR + RED)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RED": "Sentinel-2 B4"
+    },
+    "historical": {
+      "August": 0.62,
+      "September": 0.55,
+      "October": 0.5
+    },
+    "decline_detected": true,
+    "decline_warning": "\u26a0\ufe0f Mild decline in crop canopy density"
+  },
+  "F-009": {
+    "field_id": "F-009",
+    "crop": "Paddy",
+    "area_ha": 3.4,
+    "ndvi_mean": 0.79,
+    "ndvi_min": 0.73,
+    "ndvi_max": 0.84,
+    "status": "Healthy",
+    "formula": "NDVI = (NIR - RED) / (NIR + RED)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RED": "Sentinel-2 B4"
+    },
+    "historical": {
+      "August": 0.75,
+      "September": 0.81,
+      "October": 0.79
+    },
+    "decline_detected": false,
+    "decline_warning": "Vegetation vigor remains stable within optimal envelope"
+  },
+  "F-010": {
+    "field_id": "F-010",
+    "crop": "Wheat",
+    "area_ha": 4.2,
+    "ndvi_mean": 0.8,
+    "ndvi_min": 0.74,
+    "ndvi_max": 0.85,
+    "status": "Healthy",
+    "formula": "NDVI = (NIR - RED) / (NIR + RED)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RED": "Sentinel-2 B4"
+    },
+    "historical": {
+      "August": 0.76,
+      "September": 0.82,
+      "October": 0.8
+    },
+    "decline_detected": false,
+    "decline_warning": "Vegetation vigor remains stable within optimal envelope"
+  },
+  "F-011": {
+    "field_id": "F-011",
+    "crop": "Maize",
+    "area_ha": 2.0,
+    "ndvi_mean": 0.68,
+    "ndvi_min": 0.62,
+    "ndvi_max": 0.73,
+    "status": "Healthy",
+    "formula": "NDVI = (NIR - RED) / (NIR + RED)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RED": "Sentinel-2 B4"
+    },
+    "historical": {
+      "August": 0.64,
+      "September": 0.7,
+      "October": 0.68
+    },
+    "decline_detected": false,
+    "decline_warning": "Vegetation vigor remains stable within optimal envelope"
+  },
+  "F-012": {
+    "field_id": "F-012",
+    "crop": "Cotton",
+    "area_ha": 2.9,
+    "ndvi_mean": 0.56,
+    "ndvi_min": 0.5,
+    "ndvi_max": 0.61,
+    "status": "Moderate",
+    "formula": "NDVI = (NIR - RED) / (NIR + RED)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RED": "Sentinel-2 B4"
+    },
+    "historical": {
+      "August": 0.68,
+      "September": 0.61,
+      "October": 0.56
+    },
+    "decline_detected": true,
+    "decline_warning": "\u26a0\ufe0f Mild decline in crop canopy density"
+  },
+  "F-013": {
+    "field_id": "F-013",
+    "crop": "Mustard",
+    "area_ha": 3.7,
+    "ndvi_mean": 0.38,
+    "ndvi_min": 0.32,
+    "ndvi_max": 0.43,
+    "status": "Potentially Stressed",
+    "formula": "NDVI = (NIR - RED) / (NIR + RED)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RED": "Sentinel-2 B4"
+    },
+    "historical": {
+      "August": 0.68,
+      "September": 0.54,
+      "October": 0.38
+    },
+    "decline_detected": true,
+    "decline_warning": "\u26a0\ufe0f Potential decline in crop condition (-40% drop)"
+  },
+  "F-014": {
+    "field_id": "F-014",
+    "crop": "Soybean",
+    "area_ha": 4.6,
+    "ndvi_mean": 0.72,
+    "ndvi_min": 0.66,
+    "ndvi_max": 0.77,
+    "status": "Healthy",
+    "formula": "NDVI = (NIR - RED) / (NIR + RED)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RED": "Sentinel-2 B4"
+    },
+    "historical": {
+      "August": 0.68,
+      "September": 0.74,
+      "October": 0.72
+    },
+    "decline_detected": false,
+    "decline_warning": "Vegetation vigor remains stable within optimal envelope"
+  },
+  "F-015": {
+    "field_id": "F-015",
+    "crop": "Sugarcane",
+    "area_ha": 2.4,
+    "ndvi_mean": 0.73,
+    "ndvi_min": 0.67,
+    "ndvi_max": 0.78,
+    "status": "Healthy",
+    "formula": "NDVI = (NIR - RED) / (NIR + RED)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RED": "Sentinel-2 B4"
+    },
+    "historical": {
+      "August": 0.69,
+      "September": 0.75,
+      "October": 0.73
+    },
+    "decline_detected": false,
+    "decline_warning": "Vegetation vigor remains stable within optimal envelope"
+  },
+  "F-016": {
+    "field_id": "F-016",
+    "crop": "Alfalfa",
+    "area_ha": 3.2,
+    "ndvi_mean": 0.74,
+    "ndvi_min": 0.68,
+    "ndvi_max": 0.79,
+    "status": "Healthy",
+    "formula": "NDVI = (NIR - RED) / (NIR + RED)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RED": "Sentinel-2 B4"
+    },
+    "historical": {
+      "August": 0.7,
+      "September": 0.76,
+      "October": 0.74
+    },
+    "decline_detected": false,
+    "decline_warning": "Vegetation vigor remains stable within optimal envelope"
+  },
+  "F-017": {
+    "field_id": "F-017",
+    "crop": "Paddy",
+    "area_ha": 4.1,
+    "ndvi_mean": 0.52,
+    "ndvi_min": 0.46,
+    "ndvi_max": 0.57,
+    "status": "Moderate",
+    "formula": "NDVI = (NIR - RED) / (NIR + RED)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RED": "Sentinel-2 B4"
+    },
+    "historical": {
+      "August": 0.64,
+      "September": 0.57,
+      "October": 0.52
+    },
+    "decline_detected": true,
+    "decline_warning": "\u26a0\ufe0f Mild decline in crop canopy density"
+  },
+  "F-018": {
+    "field_id": "F-018",
+    "crop": "Wheat",
+    "area_ha": 1.9,
+    "ndvi_mean": 0.76,
+    "ndvi_min": 0.7,
+    "ndvi_max": 0.81,
+    "status": "Healthy",
+    "formula": "NDVI = (NIR - RED) / (NIR + RED)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RED": "Sentinel-2 B4"
+    },
+    "historical": {
+      "August": 0.72,
+      "September": 0.78,
+      "October": 0.76
+    },
+    "decline_detected": false,
+    "decline_warning": "Vegetation vigor remains stable within optimal envelope"
+  },
+  "F-019": {
+    "field_id": "F-019",
+    "crop": "Maize",
+    "area_ha": 2.8,
+    "ndvi_mean": 0.78,
+    "ndvi_min": 0.72,
+    "ndvi_max": 0.83,
+    "status": "Healthy",
+    "formula": "NDVI = (NIR - RED) / (NIR + RED)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RED": "Sentinel-2 B4"
+    },
+    "historical": {
+      "August": 0.74,
+      "September": 0.8,
+      "October": 0.78
+    },
+    "decline_detected": false,
+    "decline_warning": "Vegetation vigor remains stable within optimal envelope"
+  },
+  "F-020": {
+    "field_id": "F-020",
+    "crop": "Cotton",
+    "area_ha": 3.6,
+    "ndvi_mean": 0.79,
+    "ndvi_min": 0.73,
+    "ndvi_max": 0.84,
+    "status": "Healthy",
+    "formula": "NDVI = (NIR - RED) / (NIR + RED)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RED": "Sentinel-2 B4"
+    },
+    "historical": {
+      "August": 0.75,
+      "September": 0.81,
+      "October": 0.79
+    },
+    "decline_detected": false,
+    "decline_warning": "Vegetation vigor remains stable within optimal envelope"
+  },
+  "F-021": {
+    "field_id": "F-021",
+    "crop": "Mustard",
+    "area_ha": 4.4,
+    "ndvi_mean": 0.57,
+    "ndvi_min": 0.51,
+    "ndvi_max": 0.62,
+    "status": "Moderate",
+    "formula": "NDVI = (NIR - RED) / (NIR + RED)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RED": "Sentinel-2 B4"
+    },
+    "historical": {
+      "August": 0.69,
+      "September": 0.62,
+      "October": 0.57
+    },
+    "decline_detected": true,
+    "decline_warning": "\u26a0\ufe0f Mild decline in crop canopy density"
+  },
+  "F-022": {
+    "field_id": "F-022",
+    "crop": "Soybean",
+    "area_ha": 2.3,
+    "ndvi_mean": 0.36,
+    "ndvi_min": 0.3,
+    "ndvi_max": 0.41,
+    "status": "Potentially Stressed",
+    "formula": "NDVI = (NIR - RED) / (NIR + RED)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RED": "Sentinel-2 B4"
+    },
+    "historical": {
+      "August": 0.66,
+      "September": 0.52,
+      "October": 0.36
+    },
+    "decline_detected": true,
+    "decline_warning": "\u26a0\ufe0f Potential decline in crop condition (-40% drop)"
+  },
+  "F-023": {
+    "field_id": "F-023",
+    "crop": "Sugarcane",
+    "area_ha": 3.1,
+    "ndvi_mean": 0.69,
+    "ndvi_min": 0.63,
+    "ndvi_max": 0.74,
+    "status": "Healthy",
+    "formula": "NDVI = (NIR - RED) / (NIR + RED)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RED": "Sentinel-2 B4"
+    },
+    "historical": {
+      "August": 0.65,
+      "September": 0.71,
+      "October": 0.69
+    },
+    "decline_detected": false,
+    "decline_warning": "Vegetation vigor remains stable within optimal envelope"
+  },
+  "F-024": {
+    "field_id": "F-024",
+    "crop": "Alfalfa",
+    "area_ha": 4.0,
+    "ndvi_mean": 0.7,
+    "ndvi_min": 0.64,
+    "ndvi_max": 0.75,
+    "status": "Healthy",
+    "formula": "NDVI = (NIR - RED) / (NIR + RED)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RED": "Sentinel-2 B4"
+    },
+    "historical": {
+      "August": 0.66,
+      "September": 0.72,
+      "October": 0.7
+    },
+    "decline_detected": false,
+    "decline_warning": "Vegetation vigor remains stable within optimal envelope"
+  },
+  "F-025": {
+    "field_id": "F-025",
+    "crop": "Paddy",
+    "area_ha": 1.8,
+    "ndvi_mean": 0.72,
+    "ndvi_min": 0.66,
+    "ndvi_max": 0.77,
+    "status": "Healthy",
+    "formula": "NDVI = (NIR - RED) / (NIR + RED)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RED": "Sentinel-2 B4"
+    },
+    "historical": {
+      "August": 0.68,
+      "September": 0.74,
+      "October": 0.72
+    },
+    "decline_detected": false,
+    "decline_warning": "Vegetation vigor remains stable within optimal envelope"
+  }
+}

@@ -1,0 +1,477 @@
+{
+  "F-001": {
+    "field_id": "F-001",
+    "crop": "Paddy",
+    "area_ha": 2.6,
+    "ndre_mean": 0.47,
+    "ndre_min": 0.42,
+    "ndre_max": 0.51,
+    "status": "Healthy",
+    "formula": "NDRE = (NIR - RedEdge) / (NIR + RedEdge)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RedEdge": "Sentinel-2 B5"
+    },
+    "historical": {
+      "August": 0.44,
+      "September": 0.48,
+      "October": 0.47
+    }
+  },
+  "F-002": {
+    "field_id": "F-002",
+    "crop": "Wheat",
+    "area_ha": 3.5,
+    "ndre_mean": 0.48,
+    "ndre_min": 0.43,
+    "ndre_max": 0.52,
+    "status": "Healthy",
+    "formula": "NDRE = (NIR - RedEdge) / (NIR + RedEdge)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RedEdge": "Sentinel-2 B5"
+    },
+    "historical": {
+      "August": 0.45,
+      "September": 0.49,
+      "October": 0.48
+    }
+  },
+  "F-003": {
+    "field_id": "F-003",
+    "crop": "Maize",
+    "area_ha": 4.3,
+    "ndre_mean": 0.39,
+    "ndre_min": 0.34,
+    "ndre_max": 0.43,
+    "status": "Moderate",
+    "formula": "NDRE = (NIR - RedEdge) / (NIR + RedEdge)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RedEdge": "Sentinel-2 B5"
+    },
+    "historical": {
+      "August": 0.46,
+      "September": 0.41,
+      "October": 0.39
+    }
+  },
+  "F-004": {
+    "field_id": "F-004",
+    "crop": "Cotton",
+    "area_ha": 2.2,
+    "ndre_mean": 0.2,
+    "ndre_min": 0.15,
+    "ndre_max": 0.24,
+    "status": "Potentially Stressed",
+    "formula": "NDRE = (NIR - RedEdge) / (NIR + RedEdge)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RedEdge": "Sentinel-2 B5"
+    },
+    "historical": {
+      "August": 0.48,
+      "September": 0.38,
+      "October": 0.2
+    }
+  },
+  "F-005": {
+    "field_id": "F-005",
+    "crop": "Mustard",
+    "area_ha": 3.0,
+    "ndre_mean": 0.52,
+    "ndre_min": 0.47,
+    "ndre_max": 0.56,
+    "status": "Healthy",
+    "formula": "NDRE = (NIR - RedEdge) / (NIR + RedEdge)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RedEdge": "Sentinel-2 B5"
+    },
+    "historical": {
+      "August": 0.48,
+      "September": 0.52,
+      "October": 0.52
+    }
+  },
+  "F-006": {
+    "field_id": "F-006",
+    "crop": "Soybean",
+    "area_ha": 3.8,
+    "ndre_mean": 0.53,
+    "ndre_min": 0.48,
+    "ndre_max": 0.57,
+    "status": "Healthy",
+    "formula": "NDRE = (NIR - RedEdge) / (NIR + RedEdge)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RedEdge": "Sentinel-2 B5"
+    },
+    "historical": {
+      "August": 0.48,
+      "September": 0.52,
+      "October": 0.53
+    }
+  },
+  "F-007": {
+    "field_id": "F-007",
+    "crop": "Sugarcane",
+    "area_ha": 4.7,
+    "ndre_mean": 0.54,
+    "ndre_min": 0.49,
+    "ndre_max": 0.58,
+    "status": "Healthy",
+    "formula": "NDRE = (NIR - RedEdge) / (NIR + RedEdge)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RedEdge": "Sentinel-2 B5"
+    },
+    "historical": {
+      "August": 0.49,
+      "September": 0.53,
+      "October": 0.54
+    }
+  },
+  "F-008": {
+    "field_id": "F-008",
+    "crop": "Alfalfa",
+    "area_ha": 2.5,
+    "ndre_mean": 0.37,
+    "ndre_min": 0.32,
+    "ndre_max": 0.41,
+    "status": "Moderate",
+    "formula": "NDRE = (NIR - RedEdge) / (NIR + RedEdge)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RedEdge": "Sentinel-2 B5"
+    },
+    "historical": {
+      "August": 0.42,
+      "September": 0.37,
+      "October": 0.37
+    }
+  },
+  "F-009": {
+    "field_id": "F-009",
+    "crop": "Paddy",
+    "area_ha": 3.4,
+    "ndre_mean": 0.46,
+    "ndre_min": 0.41,
+    "ndre_max": 0.5,
+    "status": "Healthy",
+    "formula": "NDRE = (NIR - RedEdge) / (NIR + RedEdge)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RedEdge": "Sentinel-2 B5"
+    },
+    "historical": {
+      "August": 0.51,
+      "September": 0.55,
+      "October": 0.46
+    }
+  },
+  "F-010": {
+    "field_id": "F-010",
+    "crop": "Wheat",
+    "area_ha": 4.2,
+    "ndre_mean": 0.47,
+    "ndre_min": 0.42,
+    "ndre_max": 0.51,
+    "status": "Healthy",
+    "formula": "NDRE = (NIR - RedEdge) / (NIR + RedEdge)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RedEdge": "Sentinel-2 B5"
+    },
+    "historical": {
+      "August": 0.52,
+      "September": 0.56,
+      "October": 0.47
+    }
+  },
+  "F-011": {
+    "field_id": "F-011",
+    "crop": "Maize",
+    "area_ha": 2.0,
+    "ndre_mean": 0.48,
+    "ndre_min": 0.43,
+    "ndre_max": 0.52,
+    "status": "Healthy",
+    "formula": "NDRE = (NIR - RedEdge) / (NIR + RedEdge)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RedEdge": "Sentinel-2 B5"
+    },
+    "historical": {
+      "August": 0.44,
+      "September": 0.48,
+      "October": 0.48
+    }
+  },
+  "F-012": {
+    "field_id": "F-012",
+    "crop": "Cotton",
+    "area_ha": 2.9,
+    "ndre_mean": 0.34,
+    "ndre_min": 0.29,
+    "ndre_max": 0.38,
+    "status": "Moderate",
+    "formula": "NDRE = (NIR - RedEdge) / (NIR + RedEdge)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RedEdge": "Sentinel-2 B5"
+    },
+    "historical": {
+      "August": 0.46,
+      "September": 0.41,
+      "October": 0.34
+    }
+  },
+  "F-013": {
+    "field_id": "F-013",
+    "crop": "Mustard",
+    "area_ha": 3.7,
+    "ndre_mean": 0.22,
+    "ndre_min": 0.17,
+    "ndre_max": 0.26,
+    "status": "Potentially Stressed",
+    "formula": "NDRE = (NIR - RedEdge) / (NIR + RedEdge)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RedEdge": "Sentinel-2 B5"
+    },
+    "historical": {
+      "August": 0.46,
+      "September": 0.37,
+      "October": 0.22
+    }
+  },
+  "F-014": {
+    "field_id": "F-014",
+    "crop": "Soybean",
+    "area_ha": 4.6,
+    "ndre_mean": 0.52,
+    "ndre_min": 0.47,
+    "ndre_max": 0.56,
+    "status": "Healthy",
+    "formula": "NDRE = (NIR - RedEdge) / (NIR + RedEdge)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RedEdge": "Sentinel-2 B5"
+    },
+    "historical": {
+      "August": 0.46,
+      "September": 0.5,
+      "October": 0.52
+    }
+  },
+  "F-015": {
+    "field_id": "F-015",
+    "crop": "Sugarcane",
+    "area_ha": 2.4,
+    "ndre_mean": 0.53,
+    "ndre_min": 0.48,
+    "ndre_max": 0.57,
+    "status": "Healthy",
+    "formula": "NDRE = (NIR - RedEdge) / (NIR + RedEdge)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RedEdge": "Sentinel-2 B5"
+    },
+    "historical": {
+      "August": 0.47,
+      "September": 0.51,
+      "October": 0.53
+    }
+  },
+  "F-016": {
+    "field_id": "F-016",
+    "crop": "Alfalfa",
+    "area_ha": 3.2,
+    "ndre_mean": 0.54,
+    "ndre_min": 0.49,
+    "ndre_max": 0.58,
+    "status": "Healthy",
+    "formula": "NDRE = (NIR - RedEdge) / (NIR + RedEdge)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RedEdge": "Sentinel-2 B5"
+    },
+    "historical": {
+      "August": 0.48,
+      "September": 0.52,
+      "October": 0.54
+    }
+  },
+  "F-017": {
+    "field_id": "F-017",
+    "crop": "Paddy",
+    "area_ha": 4.1,
+    "ndre_mean": 0.42,
+    "ndre_min": 0.37,
+    "ndre_max": 0.46,
+    "status": "Moderate",
+    "formula": "NDRE = (NIR - RedEdge) / (NIR + RedEdge)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RedEdge": "Sentinel-2 B5"
+    },
+    "historical": {
+      "August": 0.44,
+      "September": 0.39,
+      "October": 0.42
+    }
+  },
+  "F-018": {
+    "field_id": "F-018",
+    "crop": "Wheat",
+    "area_ha": 1.9,
+    "ndre_mean": 0.46,
+    "ndre_min": 0.41,
+    "ndre_max": 0.5,
+    "status": "Healthy",
+    "formula": "NDRE = (NIR - RedEdge) / (NIR + RedEdge)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RedEdge": "Sentinel-2 B5"
+    },
+    "historical": {
+      "August": 0.49,
+      "September": 0.53,
+      "October": 0.46
+    }
+  },
+  "F-019": {
+    "field_id": "F-019",
+    "crop": "Maize",
+    "area_ha": 2.8,
+    "ndre_mean": 0.47,
+    "ndre_min": 0.42,
+    "ndre_max": 0.51,
+    "status": "Healthy",
+    "formula": "NDRE = (NIR - RedEdge) / (NIR + RedEdge)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RedEdge": "Sentinel-2 B5"
+    },
+    "historical": {
+      "August": 0.5,
+      "September": 0.54,
+      "October": 0.47
+    }
+  },
+  "F-020": {
+    "field_id": "F-020",
+    "crop": "Cotton",
+    "area_ha": 3.6,
+    "ndre_mean": 0.48,
+    "ndre_min": 0.43,
+    "ndre_max": 0.52,
+    "status": "Healthy",
+    "formula": "NDRE = (NIR - RedEdge) / (NIR + RedEdge)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RedEdge": "Sentinel-2 B5"
+    },
+    "historical": {
+      "August": 0.51,
+      "September": 0.55,
+      "October": 0.48
+    }
+  },
+  "F-021": {
+    "field_id": "F-021",
+    "crop": "Mustard",
+    "area_ha": 4.4,
+    "ndre_mean": 0.39,
+    "ndre_min": 0.34,
+    "ndre_max": 0.43,
+    "status": "Moderate",
+    "formula": "NDRE = (NIR - RedEdge) / (NIR + RedEdge)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RedEdge": "Sentinel-2 B5"
+    },
+    "historical": {
+      "August": 0.47,
+      "September": 0.42,
+      "October": 0.39
+    }
+  },
+  "F-022": {
+    "field_id": "F-022",
+    "crop": "Soybean",
+    "area_ha": 2.3,
+    "ndre_mean": 0.24,
+    "ndre_min": 0.19,
+    "ndre_max": 0.28,
+    "status": "Potentially Stressed",
+    "formula": "NDRE = (NIR - RedEdge) / (NIR + RedEdge)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RedEdge": "Sentinel-2 B5"
+    },
+    "historical": {
+      "August": 0.45,
+      "September": 0.35,
+      "October": 0.24
+    }
+  },
+  "F-023": {
+    "field_id": "F-023",
+    "crop": "Sugarcane",
+    "area_ha": 3.1,
+    "ndre_mean": 0.52,
+    "ndre_min": 0.47,
+    "ndre_max": 0.56,
+    "status": "Healthy",
+    "formula": "NDRE = (NIR - RedEdge) / (NIR + RedEdge)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RedEdge": "Sentinel-2 B5"
+    },
+    "historical": {
+      "August": 0.44,
+      "September": 0.48,
+      "October": 0.52
+    }
+  },
+  "F-024": {
+    "field_id": "F-024",
+    "crop": "Alfalfa",
+    "area_ha": 4.0,
+    "ndre_mean": 0.53,
+    "ndre_min": 0.48,
+    "ndre_max": 0.57,
+    "status": "Healthy",
+    "formula": "NDRE = (NIR - RedEdge) / (NIR + RedEdge)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RedEdge": "Sentinel-2 B5"
+    },
+    "historical": {
+      "August": 0.45,
+      "September": 0.49,
+      "October": 0.53
+    }
+  },
+  "F-025": {
+    "field_id": "F-025",
+    "crop": "Paddy",
+    "area_ha": 1.8,
+    "ndre_mean": 0.54,
+    "ndre_min": 0.49,
+    "ndre_max": 0.58,
+    "status": "Healthy",
+    "formula": "NDRE = (NIR - RedEdge) / (NIR + RedEdge)",
+    "bands": {
+      "NIR": "Sentinel-2 B8",
+      "RedEdge": "Sentinel-2 B5"
+    },
+    "historical": {
+      "August": 0.46,
+      "September": 0.5,
+      "October": 0.54
+    }
+  }
+}

@@ -1,0 +1,1246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CropPulse — Satellite-Based Crop Health Monitoring System</title>
+  
+  <!-- Google Fonts & Material Symbols -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200&display=swap" rel="stylesheet" />
+  
+  <!-- Leaflet CSS for Satellite Map Mode -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          colors: {
+            "primary": "#012d1d",
+            "primary-container": "#1b4332",
+            "on-primary": "#ffffff",
+            "on-primary-container": "#86af99",
+            "secondary": "#116c4a",
+            "secondary-container": "#a1f4c8",
+            "on-secondary-container": "#1b724f",
+            "surface-canvas": "#fcfbf9",
+            "surface-card": "#ffffff",
+            "surface-muted": "#f4f3ef",
+            "surface-dim": "#d3daea",
+            "surface-container": "#e7eefe",
+            "border-subtle": "#e5e7eb",
+            "border-strong": "#d1d5db",
+            "text-primary": "#1f2937",
+            "text-secondary": "#4b5563",
+            "text-tertiary": "#9ca3af",
+            "health-healthy": "#2d6a4f",
+            "health-healthy-bg": "#ecfdf5",
+            "health-healthy-border": "#a7f3d0",
+            "health-moderate": "#d97706",
+            "health-moderate-bg": "#fffbeb",
+            "health-moderate-border": "#fde68a",
+            "health-stressed": "#dc2626",
+            "health-stressed-bg": "#fef2f2",
+            "health-stressed-border": "#fecaca"
+          },
+          borderRadius: {
+            DEFAULT: "0.25rem",
+            lg: "0.5rem",
+            xl: "0.75rem",
+            full: "9999px"
+          },
+          spacing: {
+            "space-2xs": "0.25rem",
+            "space-xs": "0.5rem",
+            "space-sm": "0.75rem",
+            "space-md": "1rem",
+            "space-lg": "1.5rem",
+            "space-xl": "2rem",
+            "space-2xl": "3rem",
+            "margin-desktop": "2rem"
+          },
+          fontFamily: {
+            "heading": ["Plus Jakarta Sans", "sans-serif"],
+            "body": ["Inter", "sans-serif"]
+          }
+        }
+      }
+    };
+  </script>
+
+  <!-- Custom Styles -->
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="bg-surface-canvas font-body text-text-primary antialiased selection:bg-secondary-container selection:text-primary">
+
+  <!-- ============================================================ -->
+  <!-- COMPACT APPLICATION HEADER -->
+  <!-- ============================================================ -->
+  <header class="fixed top-0 left-0 right-0 z-40 bg-surface-card border-b border-border-subtle shadow-xs">
+    <div class="h-14 w-full px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+      
+      <!-- Brand & Title -->
+      <div class="flex items-center gap-3">
+        <!-- CropPulse Stylized Vector Logo -->
+        <div class="w-8 h-8 rounded-lg bg-primary-container flex items-center justify-center text-secondary-container shadow-xs">
+          <span class="material-symbols-outlined text-[20px]">satellite_alt</span>
+        </div>
+        <div class="flex flex-col">
+          <span class="font-heading font-bold text-sm tracking-tight leading-none text-primary uppercase">Crop Pulse</span>
+          <span class="text-[11px] text-text-secondary leading-none mt-1">Satellite Crop Health Monitoring</span>
+        </div>
+
+        <div class="h-4 w-[1px] bg-border-subtle mx-2 hidden sm:block"></div>
+
+        <!-- Navigation Tabs -->
+        <nav class="hidden md:flex items-center gap-1">
+          <a href="#monitor" data-nav-tab="monitor" class="px-space-sm py-1.5 transition-colors bg-surface-container text-on-surface font-semibold rounded-lg text-xs">
+            Monitor
+          </a>
+          <a href="#fields" data-nav-tab="fields" class="px-space-sm py-1.5 font-label-md text-label-md text-text-secondary hover:text-text-primary transition-colors text-xs">
+            Fields Cadastre
+          </a>
+          <a href="#reports" data-nav-tab="reports" class="px-space-sm py-1.5 font-label-md text-label-md text-text-secondary hover:text-text-primary transition-colors text-xs">
+            Reports & Audit
+          </a>
+        </nav>
+      </div>
+
+      <!-- Right Utility Status & Controls -->
+      <div class="flex items-center gap-3">
+        <!-- Satellite Status Badge -->
+        <div class="hidden lg:flex items-center gap-2 px-3 py-1 bg-surface-muted rounded-full border border-border-subtle">
+          <span class="w-2 h-2 rounded-full bg-health-healthy animate-pulse"></span>
+          <span class="font-mono text-[11px] text-text-secondary">Sentinel-2 MSI • Google Earth Engine</span>
+        </div>
+
+        <!-- Guided Demo Trigger for Judges -->
+        <button id="demo-tour-btn" type="button" class="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold text-secondary bg-health-healthy-bg hover:bg-secondary-container rounded-lg border border-health-healthy-border transition-colors shadow-xs" title="Auto-run complete demonstration workflow for judges">
+          <span class="material-symbols-outlined text-[15px]">play_circle</span>
+          <span>Guided Demo</span>
+        </button>
+
+        <!-- Utility Icon Buttons -->
+        <div class="flex items-center gap-1">
+          <button id="top-export-btn" type="button" class="w-8 h-8 rounded-lg flex items-center justify-center text-text-secondary hover:text-text-primary hover:bg-surface-muted transition-colors" title="Export Geospatial Data (GeoJSON / CSV)">
+            <span class="material-symbols-outlined text-[18px]">download</span>
+          </button>
+          <button id="top-settings-btn" type="button" class="w-8 h-8 rounded-lg flex items-center justify-center text-text-secondary hover:text-text-primary hover:bg-surface-muted transition-colors" title="Adjust Classification Thresholds">
+            <span class="material-symbols-outlined text-[18px]">tune</span>
+          </button>
+        </div>
+
+        <div class="h-4 w-[1px] bg-border-subtle mx-1"></div>
+
+        <!-- User / Mission Profile -->
+        <div class="w-8 h-8 rounded-full bg-primary-container text-white flex items-center justify-center text-xs font-bold" title="Agronomist Session Active">
+          <span class="material-symbols-outlined text-[17px]">eco</span>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- ============================================================ -->
+  <!-- MAIN APPLICATION VIEWPORT -->
+  <!-- ============================================================ -->
+  <main class="w-full pt-14 min-h-screen flex flex-col">
+
+    <!-- SLIM CONTROL STRIP (Directly below header) -->
+    <section class="w-full bg-surface-card border-b border-border-subtle px-4 sm:px-6 lg:px-8 py-2 z-30">
+      <div class="max-w-[1600px] mx-auto flex flex-wrap items-center justify-between gap-3">
+        
+        <!-- Controls Group -->
+        <div class="flex flex-wrap items-center gap-3 flex-1 min-w-[280px]">
+          
+          <!-- Control 1: Area Selector -->
+          <div class="min-w-[220px]">
+            <span class="block text-[11px] font-semibold uppercase tracking-wider text-text-tertiary mb-0.5">Agricultural AOI</span>
+            <div id="aoi-selector-trigger" class="flex items-center gap-2 px-3 py-1.5 bg-surface-canvas hover:bg-surface-muted rounded-lg border border-border-subtle cursor-pointer transition-colors shadow-xs">
+              <span class="material-symbols-outlined text-[16px] text-secondary">location_on</span>
+              <span class="aoi-display-name text-xs font-medium text-text-primary truncate">Central Valley Quad 4B (Winter Wheat & Alfalfa)</span>
+              <span class="material-symbols-outlined text-[16px] text-text-tertiary ml-auto">expand_more</span>
+            </div>
+          </div>
+
+          <div class="h-8 w-px bg-border-subtle hidden lg:block"></div>
+
+          <!-- Control 2: Current Analysis Window -->
+          <div class="min-w-[170px]">
+            <span class="block text-[11px] font-semibold uppercase tracking-wider text-text-tertiary mb-0.5">Current Window</span>
+            <div id="current-period-trigger" class="flex items-center gap-2 px-3 py-1.5 bg-surface-canvas hover:bg-surface-muted rounded-lg border border-border-subtle cursor-pointer transition-colors shadow-xs">
+              <span class="material-symbols-outlined text-[16px] text-text-secondary">calendar_today</span>
+              <span class="current-period-text text-xs text-text-primary">May 01 – May 18, 2024</span>
+              <span class="material-symbols-outlined text-[16px] text-text-tertiary ml-auto">expand_more</span>
+            </div>
+          </div>
+
+          <!-- Control 3: Baseline Comparison Window -->
+          <div class="min-w-[170px]">
+            <span class="block text-[11px] font-semibold uppercase tracking-wider text-text-tertiary mb-0.5">Baseline Window</span>
+            <div id="baseline-period-trigger" class="flex items-center gap-2 px-3 py-1.5 bg-surface-canvas hover:bg-surface-muted rounded-lg border border-border-subtle cursor-pointer transition-colors shadow-xs">
+              <span class="material-symbols-outlined text-[16px] text-text-tertiary">history</span>
+              <span class="baseline-period-text text-xs text-text-secondary">May 01 – May 18, 2023</span>
+              <span class="material-symbols-outlined text-[16px] text-text-tertiary ml-auto">expand_more</span>
+            </div>
+          </div>
+
+          <!-- Control 4: Vegetation Index Selector -->
+          <div class="min-w-[150px]">
+            <span class="block text-[11px] font-semibold uppercase tracking-wider text-text-tertiary mb-0.5">Vegetation Index</span>
+            <div class="relative">
+              <select id="index-select" class="w-full h-[32px] pl-3 pr-8 bg-surface-canvas hover:bg-surface-muted rounded-lg border border-border-subtle text-xs font-semibold text-text-primary appearance-none cursor-pointer focus:outline-none focus:border-secondary shadow-xs transition-colors">
+                <option value="ndvi">NDVI (Normalized Difference)</option>
+                <option value="ndre">NDRE (Red-Edge Chlorophyll)</option>
+                <option value="evi">EVI (Enhanced Vegetation)</option>
+              </select>
+              <span class="material-symbols-outlined absolute right-2 top-1/2 -translate-y-1/2 text-[16px] text-text-tertiary pointer-events-none">expand_more</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Single Primary Action + Reset Button -->
+        <div class="flex items-center gap-2 ml-auto pt-1 sm:pt-0">
+          <button id="reset-btn" type="button" class="text-text-secondary hover:text-text-primary font-medium text-xs px-2.5 py-1.5 rounded hover:bg-surface-muted transition-colors">
+            Reset
+          </button>
+          
+          <button id="control-analyze-btn" type="button" class="inline-flex items-center justify-center gap-2 bg-primary-container text-on-primary hover:bg-secondary px-5 py-2 rounded-lg font-heading font-semibold text-xs transition-all active:scale-[0.98] shadow-sm cursor-pointer">
+            <span class="material-symbols-outlined text-[16px]">satellite_alt</span>
+            <span>Analyze Crop Health</span>
+          </button>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ============================================================ -->
+    <!-- TAB VIEW 1: MONITOR (PRIMARY GEOSPATIAL DASHBOARD) -->
+    <!-- ============================================================ -->
+    <div id="view-monitor" class="w-full flex-1 flex flex-col">
+
+      <!-- ------------------------------------------------------------ -->
+      <!-- VIEW STATE A: EMPTY INITIAL STATE -->
+      <!-- ------------------------------------------------------------ -->
+      <div id="empty-state-container" class="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-6">
+        
+        <!-- Hero Map Placeholder Container -->
+        <div class="relative w-full h-[520px] lg:h-[580px] rounded-xl overflow-hidden shadow-sm bg-surface-card border border-border-subtle">
+          
+          <!-- Vector Field Cadastre & Satellite Base Grid (Calm Alabaster) -->
+          <svg class="absolute inset-0 w-full h-full object-cover opacity-85 select-none" preserveAspectRatio="xMidYMid slice" viewBox="0 0 1200 600" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <pattern id="emptyCadastreGrid" width="60" height="60" patternUnits="userSpaceOnUse">
+                <path d="M 60 0 L 0 0 0 60" fill="none" stroke="#e7eefe" stroke-width="1.2"></path>
+              </pattern>
+              <linearGradient id="softField1" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#f4f3ef" stop-opacity="0.9"></stop>
+                <stop offset="100%" stop-color="#e7eefe" stop-opacity="0.3"></stop>
+              </linearGradient>
+              <linearGradient id="softField2" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ecfdf5" stop-opacity="0.7"></stop>
+                <stop offset="100%" stop-color="#fcfbf9" stop-opacity="0.3"></stop>
+              </linearGradient>
+            </defs>
+            
+            <rect width="100%" height="100%" fill="url(#emptyCadastreGrid)"></rect>
+            
+            <!-- Inactive Field Plots -->
+            <polygon points="120,60 380,45 340,240 90,210" fill="url(#softField1)" stroke="#dce2f3" stroke-width="1.5" stroke-dasharray="3 3"></polygon>
+            <polygon points="400,50 680,80 630,290 360,250" fill="url(#softField2)" stroke="#dce2f3" stroke-width="1.5"></polygon>
+            <polygon points="700,90 990,70 940,320 650,300" fill="url(#softField1)" stroke="#dce2f3" stroke-width="1.5" stroke-dasharray="3 3"></polygon>
+            <polygon points="1010,80 1180,95 1160,340 960,330" fill="url(#softField2)" stroke="#dce2f3" stroke-width="1.5"></polygon>
+            <polygon points="60,240 330,260 290,520 40,490" fill="url(#softField2)" stroke="#dce2f3" stroke-width="1.5"></polygon>
+            <polygon points="350,270 620,310 570,540 310,530" fill="url(#softField1)" stroke="#dce2f3" stroke-width="1.5" stroke-dasharray="3 3"></polygon>
+            <polygon points="640,320 930,340 880,560 600,550" fill="url(#softField2)" stroke="#dce2f3" stroke-width="1.5"></polygon>
+            <polygon points="950,350 1190,360 1170,570 910,570" fill="url(#softField1)" stroke="#dce2f3" stroke-width="1.5" stroke-dasharray="3 3"></polygon>
+
+            <!-- Canal Line -->
+            <path d="M-20,180 Q320,160 610,210 T1220,190" fill="none" stroke="#dce2f3" stroke-width="3" stroke-linecap="round"></path>
+            
+            <!-- Target Reticle Overlay -->
+            <circle cx="600" cy="300" r="140" fill="none" stroke="#86d7ad" stroke-width="1" stroke-dasharray="4 6" opacity="0.4"></circle>
+            <circle cx="600" cy="300" r="4" fill="#116c4a"></circle>
+          </svg>
+
+          <!-- Top-Left Status Telemetry HUD -->
+          <div class="absolute top-4 left-4 flex flex-col gap-1.5 z-20">
+            <div class="bg-surface-card/95 backdrop-glass rounded-lg px-3 py-1.5 shadow-sm border border-border-subtle flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-secondary"></span>
+              <span class="font-mono text-xs font-semibold text-text-primary">AOI: Ready for Analysis</span>
+            </div>
+            <div class="bg-surface-card/85 backdrop-glass rounded-lg px-3 py-1 shadow-xs border border-border-subtle flex items-center gap-1.5">
+              <span class="text-[11px] text-text-tertiary">Spectral Bands: B4 (Red 665nm) + B8 (NIR 842nm) 10m Ground Resolution</span>
+            </div>
+          </div>
+
+          <!-- Center Minimalist Hero Action Card -->
+          <div class="absolute inset-0 flex items-center justify-center p-4 z-20 pointer-events-none">
+            <div class="w-full max-w-[540px] bg-surface-card/98 backdrop-glass rounded-xl p-6 sm:p-8 shadow-xl border border-border-subtle flex flex-col items-center text-center pointer-events-auto">
+              
+              <!-- Satellite Orbit Icon Badge -->
+              <div class="w-12 h-12 rounded-xl bg-health-healthy-bg flex items-center justify-center text-health-healthy mb-3 shadow-xs">
+                <span class="material-symbols-outlined text-[26px]">satellite_alt</span>
+              </div>
+
+              <h1 class="font-heading font-bold text-xl sm:text-2xl text-primary mb-2">
+                Select an agricultural area and time period to begin.
+              </h1>
+
+              <p class="text-sm text-text-secondary max-w-md mb-6 leading-relaxed">
+                Use satellite vegetation indices to monitor crop health over time, detect early moisture or disease anomalies, and prioritize ground scouting.
+              </p>
+
+              <!-- Main Button -->
+              <div class="flex flex-wrap items-center justify-center gap-3">
+                <button id="hero-select-area-btn" type="button" class="h-10 px-6 bg-primary-container hover:bg-secondary text-on-primary font-heading font-semibold text-xs rounded-lg shadow-sm flex items-center gap-2 transition-all active:scale-[0.98] cursor-pointer">
+                  <span class="material-symbols-outlined text-[18px]">travel_explore</span>
+                  <span>Select Area</span>
+                </button>
+
+                <button id="empty-analyze-btn" type="button" class="h-10 px-6 bg-primary-container hover:bg-secondary text-on-primary font-heading font-semibold text-xs rounded-lg shadow-sm flex items-center gap-2 transition-all active:scale-[0.98] cursor-pointer">
+                  <span class="material-symbols-outlined text-[18px]">play_arrow</span>
+                  <span>Analyze Crop Health</span>
+                </button>
+              </div>
+
+              <!-- Quick Presets Demo Row -->
+              <div class="w-full mt-6 pt-4 border-t border-border-subtle flex flex-col items-center">
+                <span class="text-[11px] uppercase tracking-wider text-text-tertiary mb-2 font-semibold">
+                  Or quick-load demonstration plot
+                </span>
+                <div class="flex flex-wrap items-center justify-center gap-2">
+                  <button type="button" data-preset-aoi="central-valley" class="px-3 py-1 rounded-full bg-surface-muted hover:bg-surface-container text-text-secondary hover:text-text-primary text-xs font-medium transition-colors border border-border-subtle">
+                    Central Valley Quad 4B (CA)
+                  </button>
+                  <button type="button" data-preset-aoi="punjab-zone" class="px-3 py-1 rounded-full bg-surface-muted hover:bg-surface-container text-text-secondary hover:text-text-primary text-xs font-medium transition-colors border border-border-subtle">
+                    Punjab Agro Zone 7 (India)
+                  </button>
+                  <button type="button" data-preset-aoi="kansas-belt" class="px-3 py-1 rounded-full bg-surface-muted hover:bg-surface-container text-text-secondary hover:text-text-primary text-xs font-medium transition-colors border border-border-subtle">
+                    Kansas Sector 12 (Corn Belt)
+                  </button>
+                  <button type="button" data-preset-aoi="nile-delta" class="px-3 py-1 rounded-full bg-surface-muted hover:bg-surface-container text-text-secondary hover:text-text-primary text-xs font-medium transition-colors border border-border-subtle">
+                    Nile Delta Sector 3 (Egypt)
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- ------------------------------------------------------------ -->
+      <!-- VIEW STATE B: RESULTS DASHBOARD -->
+      <!-- ------------------------------------------------------------ -->
+      <div id="results-state-container" class="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 flex flex-col gap-6 hidden">
+        
+        <!-- HERO SATELLITE MAP CONTAINER (60–70% Visual Centerpiece) -->
+        <div class="relative w-full rounded-xl overflow-hidden shadow-md bg-surface-card border border-border-subtle min-h-[500px] h-[590px]">
+          
+          <!-- MODE 1: High-Precision Simulated Agronomic Cadastre Layer -->
+          <div id="cadastre-view-container" class="absolute inset-0 bg-[#0a1910] overflow-hidden">
+            
+            <svg id="cadastre-map-svg" class="absolute inset-0 w-full h-full object-cover transition-transform duration-300" preserveAspectRatio="none" viewBox="0 0 1200 700">
+              <defs>
+                <!-- Anomaly glow gradients -->
+                <radialGradient id="stressed-zone-glow" cx="72%" cy="68%" r="24%">
+                  <stop offset="0%" stop-color="#dc2626" stop-opacity="0.85"></stop>
+                  <stop offset="45%" stop-color="#dc2626" stop-opacity="0.45"></stop>
+                  <stop offset="80%" stop-color="#d97706" stop-opacity="0.25"></stop>
+                  <stop offset="100%" stop-color="#0a1910" stop-opacity="0"></stop>
+                </radialGradient>
+                <radialGradient id="mod-zone-glow" cx="42%" cy="35%" r="28%">
+                  <stop offset="0%" stop-color="#d97706" stop-opacity="0.6"></stop>
+                  <stop offset="65%" stop-color="#2d6a4f" stop-opacity="0.3"></stop>
+                  <stop offset="100%" stop-color="#0a1910" stop-opacity="0"></stop>
+                </radialGradient>
+
+                <!-- Furrows & Center Pivots -->
+                <pattern id="crop-furrows" width="18" height="18" patternUnits="userSpaceOnUse" patternTransform="rotate(28)">
+                  <line x1="0" y1="0" x2="0" y2="18" stroke="#163827" stroke-width="2.5"></line>
+                  <line x1="9" y1="0" x2="9" y2="18" stroke="#0e291c" stroke-width="1.5"></line>
+                </pattern>
+                <pattern id="pivot-radial" width="120" height="120" patternUnits="userSpaceOnUse">
+                  <circle cx="60" cy="60" r="54" fill="none" stroke="#22533b" stroke-width="1.5" stroke-dasharray="3,3"></circle>
+                  <circle cx="60" cy="60" r="32" fill="none" stroke="#2d6a4f" stroke-width="1"></circle>
+                </pattern>
+              </defs>
+
+              <!-- Soil Background & Textures -->
+              <rect width="100%" height="100%" fill="#0a1910"></rect>
+              <rect class="crop-furrow-pattern" width="100%" height="100%" fill="url(#crop-furrows)" opacity="0.65"></rect>
+              <rect width="360" height="260" x="180" y="80" fill="url(#pivot-radial)" opacity="0.4"></rect>
+
+              <!-- Agronomic Parcel Polygons -->
+              <!-- Parcel 01 (Healthy Alfalfa) -->
+              <polygon id="poly-1" class="cadastre-parcel" points="80,90 280,60 310,240 100,260" fill="#2d6a4f" fill-opacity="0.75" stroke="#a7f3d0" stroke-width="1.8" stroke-dasharray="4,2"></polygon>
+              
+              <!-- Parcel 02 (High Vigorous Wheat) -->
+              <polygon id="poly-2" class="cadastre-parcel" points="330,50 620,40 600,210 320,230" fill="#1b724f" fill-opacity="0.8" stroke="#a7f3d0" stroke-width="1.8"></polygon>
+              
+              <!-- Parcel 03 (Moderate West Ridge) -->
+              <polygon id="poly-3" class="cadastre-parcel" points="90,280 290,260 270,460 70,470" fill="#d97706" fill-opacity="0.65" stroke="#fde68a" stroke-width="1.8"></polygon>
+              
+              <!-- Parcel 04 (Deficit Stress Hotspot) -->
+              <polygon id="poly-4" class="cadastre-parcel" points="660,330 920,310 950,560 680,590" fill="#dc2626" fill-opacity="0.78" stroke="#fecaca" stroke-width="2.5"></polygon>
+              
+              <!-- Parcel 05 (Transitional Sector) -->
+              <polygon id="poly-5" class="cadastre-parcel" points="310,250 630,230 650,480 300,500" fill="#d97706" fill-opacity="0.65" stroke="#fde68a" stroke-width="1.8"></polygon>
+              
+              <!-- Parcel 06 (East Healthy Pasture) -->
+              <polygon id="poly-6" class="cadastre-parcel" points="640,40 1020,30 1000,280 630,300" fill="#2d6a4f" fill-opacity="0.75" stroke="#a7f3d0" stroke-width="1.8"></polygon>
+              
+              <!-- Parcel 07 (South Buffer Zone) -->
+              <polygon id="poly-7" class="cadastre-parcel" points="290,520 630,500 610,670 260,680" fill="#2d6a4f" fill-opacity="0.65" stroke="#a7f3d0" stroke-width="1.5"></polygon>
+              
+              <!-- Parcel 08 (Southeast Pivot Edge) -->
+              <polygon id="poly-8" class="cadastre-parcel" points="660,600 960,570 940,680 650,680" fill="#d97706" fill-opacity="0.68" stroke="#fde68a" stroke-width="1.5"></polygon>
+
+              <!-- Spectral Heatmap Diffusion Overlays -->
+              <rect class="spectral-heatmap-overlay" width="100%" height="100%" fill="url(#stressed-zone-glow)"></rect>
+              <rect class="spectral-heatmap-overlay" width="100%" height="100%" fill="url(#mod-zone-glow)"></rect>
+
+              <!-- Parcel Text Annotations -->
+              <text x="175" y="160" fill="#ecfdf5" font-family="Inter" font-size="11" font-weight="600" letter-spacing="1">FIELD 01 • 0.72</text>
+              <text x="445" y="130" fill="#ecfdf5" font-family="Inter" font-size="11" font-weight="600" letter-spacing="1">FIELD 02 • 0.76</text>
+              <text x="160" y="370" fill="#fffbeb" font-family="Inter" font-size="11" font-weight="600" letter-spacing="1">FIELD 03 • 0.58</text>
+              <text x="445" y="360" fill="#fffbeb" font-family="Inter" font-size="11" font-weight="600" letter-spacing="1">FIELD 05 • 0.52</text>
+              <text x="800" y="160" fill="#ecfdf5" font-family="Inter" font-size="11" font-weight="600" letter-spacing="1">FIELD 06 • 0.71</text>
+              <text x="760" y="445" fill="#fef2f2" font-family="Inter" font-size="12" font-weight="700" letter-spacing="1">SECTOR 04 [STRESS]</text>
+            </svg>
+
+            <!-- Pulsing Anomaly Target Ring on Sector 4 -->
+            <div class="absolute right-[22%] bottom-[24%] pointer-events-none flex items-center justify-center">
+              <span class="w-16 h-16 rounded-full bg-health-stressed/20 animate-ping absolute"></span>
+              <span class="w-10 h-10 rounded-full bg-health-stressed/30 border-2 border-health-stressed flex items-center justify-center shadow-lg">
+                <span class="w-2.5 h-2.5 rounded-full bg-health-stressed"></span>
+              </span>
+              <div class="absolute -top-7 whitespace-nowrap bg-gray-900/90 text-white text-[10px] font-mono px-2 py-0.5 rounded shadow-sm border border-red-500/40">
+                STRESS CORE: NDVI 0.38
+              </div>
+            </div>
+
+          </div>
+
+          <!-- MODE 2: Real Leaflet Satellite Tile Map Container -->
+          <div id="leaflet-map-container" class="absolute inset-0 hidden"></div>
+
+          <!-- Top-Left Map Telemetry HUD -->
+          <div class="absolute top-4 left-4 z-20 flex flex-wrap items-center gap-2">
+            <div class="bg-surface-card/95 backdrop-glass px-3 py-1.5 rounded-lg shadow-sm border border-border-subtle flex items-center gap-2">
+              <span class="w-2 h-2 rounded-full bg-secondary"></span>
+              <span class="aoi-display-name font-semibold text-xs text-text-primary">Central Valley Quad 4B</span>
+              <span class="text-text-tertiary text-xs">|</span>
+              <span class="aoi-display-coords font-mono text-xs text-text-secondary">36.7783° N, 119.4179° W</span>
+            </div>
+            <div class="hidden sm:flex bg-surface-card/90 backdrop-glass px-3 py-1.5 rounded-lg shadow-xs border border-border-subtle font-mono text-xs text-text-secondary">
+              Total AOI: <span class="aoi-display-area font-bold text-text-primary ml-1">2,090 Hectares</span>
+            </div>
+            <div id="index-formula-badge" class="hidden md:flex bg-health-healthy-bg/90 border border-health-healthy-border text-health-healthy px-2.5 py-1 rounded-lg text-[11px] font-mono font-medium">
+              NDVI = (B8 - B4) / (B8 + B4)
+            </div>
+          </div>
+
+          <!-- Floating Map Legend HUD (Bottom Left) -->
+          <div class="absolute bottom-4 left-4 z-20 bg-surface-card/95 backdrop-glass px-3.5 py-2.5 rounded-lg shadow-md border border-border-subtle flex flex-col gap-1.5">
+            <div class="flex items-center justify-between gap-4">
+              <span class="text-[10px] uppercase tracking-wider text-text-tertiary font-bold">Vegetation Classification</span>
+              <span id="current-index-pill" class="text-[10px] font-mono px-1.5 py-0.2 bg-surface-muted rounded font-bold text-text-secondary">NDVI</span>
+            </div>
+            <div class="flex items-center gap-3">
+              <div class="flex items-center gap-1.5">
+                <span class="w-3 h-3 rounded-full bg-health-healthy shadow-xs"></span>
+                <span id="legend-healthy-label" class="text-xs text-text-primary font-medium">Healthy (&gt; 0.65)</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="w-3 h-3 rounded-full bg-health-moderate shadow-xs"></span>
+                <span id="legend-mod-label" class="text-xs text-text-primary font-medium">Moderate (0.45 – 0.65)</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <span class="w-3 h-3 rounded-full bg-health-stressed shadow-xs"></span>
+                <span id="legend-stressed-label" class="text-xs text-text-primary font-medium">Stressed (&lt; 0.45)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Floating Map Navigation & Layer HUD (Top Right) -->
+          <div class="absolute top-4 right-4 z-20 flex flex-col gap-2">
+            
+            <!-- Zoom Controls -->
+            <div class="bg-surface-card/95 backdrop-glass p-1 rounded-lg shadow-md border border-border-subtle flex flex-col">
+              <button id="zoom-in-btn" type="button" class="w-8 h-8 rounded flex items-center justify-center text-text-primary hover:bg-surface-muted transition-colors" title="Zoom In">
+                <span class="material-symbols-outlined text-[18px]">add</span>
+              </button>
+              <div class="h-px w-full bg-border-subtle"></div>
+              <button id="zoom-out-btn" type="button" class="w-8 h-8 rounded flex items-center justify-center text-text-primary hover:bg-surface-muted transition-colors" title="Zoom Out">
+                <span class="material-symbols-outlined text-[18px]">remove</span>
+              </button>
+            </div>
+
+            <!-- Recenter AOI -->
+            <button id="recenter-btn" type="button" class="w-8 h-8 bg-surface-card/95 backdrop-glass rounded-lg shadow-md border border-border-subtle flex items-center justify-center text-text-primary hover:bg-surface-muted transition-colors" title="Recenter AOI">
+              <span class="material-symbols-outlined text-[18px]">my_location</span>
+            </button>
+
+            <!-- Layer Switches -->
+            <div class="bg-surface-card/95 backdrop-glass p-1 rounded-lg shadow-md border border-border-subtle flex flex-col items-center gap-0.5">
+              <button type="button" data-map-layer="cadastre" class="px-2 py-1 rounded font-label-sm text-label-sm bg-primary text-on-primary font-semibold transition-all text-xs" title="Agronomic Vector Cadastre">
+                Cadastre
+              </button>
+              <button type="button" data-map-layer="satellite" class="px-2 py-1 rounded font-label-sm text-label-sm text-text-secondary hover:text-text-primary font-medium transition-all text-xs" title="Sentinel-2 / High-Res Earth Imagery">
+                Satellite
+              </button>
+              <button type="button" data-map-layer="rgb" class="px-2 py-1 rounded font-label-sm text-label-sm text-text-secondary hover:text-text-primary font-medium transition-all text-xs" title="True Color Orthomosaic">
+                RGB
+              </button>
+              <button type="button" data-map-layer="stress" class="px-2 py-1 rounded font-label-sm text-label-sm text-text-secondary hover:text-text-primary font-medium transition-all text-xs" title="Thermal & Moisture Stress Mask">
+                Stress
+              </button>
+            </div>
+
+          </div>
+
+          <!-- Quick Interactive Inspect Sector 4 Pin -->
+          <div id="inspect-sector4-callout" class="absolute right-[22%] bottom-[33%] z-20 cursor-pointer group">
+            <div class="bg-surface-card/98 text-text-primary px-3 py-1.5 rounded-lg shadow-lg border border-health-stressed flex items-center gap-2 hover:bg-surface-muted transition-all">
+              <span class="w-2.5 h-2.5 rounded-full bg-health-stressed animate-pulse"></span>
+              <span class="text-xs font-bold text-health-stressed">Inspect Sector 4</span>
+              <span class="material-symbols-outlined text-[14px] text-text-secondary group-hover:translate-x-0.5 transition-transform">arrow_forward</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- 4 COMPACT RESULT KPI CARDS ROW -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          
+          <!-- Card 1: Regional Mean Index -->
+          <div class="bg-surface-card rounded-xl p-4 shadow-sm border border-border-subtle flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[11px] uppercase tracking-wider font-semibold text-text-tertiary">Regional Mean Index</span>
+              <span class="material-symbols-outlined text-[18px] text-secondary">show_chart</span>
+            </div>
+            <div class="flex items-baseline gap-2 mt-1">
+              <span id="kpi-mean-val" class="font-heading font-bold text-3xl text-text-primary leading-none">0.64</span>
+              <span class="font-mono text-xs text-text-tertiary">/ 1.00</span>
+            </div>
+            <div class="mt-3 pt-2 border-t border-border-subtle flex items-center justify-between">
+              <span id="kpi-delta-pill" class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-health-healthy-bg text-health-healthy text-xs font-semibold">
+                <span class="material-symbols-outlined text-[14px]">trending_up</span>
+                +0.04 vs baseline
+              </span>
+              <span id="kpi-baseline-ref" class="text-xs text-text-tertiary">Baseline: 0.60</span>
+            </div>
+          </div>
+
+          <!-- Card 2: Healthy Canopy -->
+          <div class="bg-surface-card rounded-xl p-4 shadow-sm border border-border-subtle flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[11px] uppercase tracking-wider font-semibold text-text-tertiary">Healthy Canopy</span>
+              <span class="w-2.5 h-2.5 rounded-full bg-health-healthy"></span>
+            </div>
+            <div class="flex items-baseline gap-2 mt-1">
+              <span id="kpi-healthy-pct" class="font-heading font-bold text-3xl text-health-healthy leading-none">68%</span>
+              <span id="kpi-healthy-ha" class="font-mono text-xs text-text-secondary font-medium">1,420 ha</span>
+            </div>
+            <div class="mt-3 pt-2 border-t border-border-subtle">
+              <div class="w-full bg-surface-muted h-1.5 rounded-full overflow-hidden">
+                <div id="kpi-healthy-bar" class="bg-health-healthy h-full rounded-full transition-all duration-500" style="width: 68%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 3: Moderate Watch -->
+          <div class="bg-surface-card rounded-xl p-4 shadow-sm border border-border-subtle flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[11px] uppercase tracking-wider font-semibold text-text-tertiary">Moderate Watch</span>
+              <span class="w-2.5 h-2.5 rounded-full bg-health-moderate"></span>
+            </div>
+            <div class="flex items-baseline gap-2 mt-1">
+              <span id="kpi-moderate-pct" class="font-heading font-bold text-3xl text-health-moderate leading-none">21%</span>
+              <span id="kpi-moderate-ha" class="font-mono text-xs text-text-secondary font-medium">440 ha</span>
+            </div>
+            <div class="mt-3 pt-2 border-t border-border-subtle">
+              <div class="w-full bg-surface-muted h-1.5 rounded-full overflow-hidden">
+                <div id="kpi-moderate-bar" class="bg-health-moderate h-full rounded-full transition-all duration-500" style="width: 21%;"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 4: Stressed Canopy -->
+          <div class="bg-surface-card rounded-xl p-4 shadow-sm border border-border-subtle flex flex-col justify-between">
+            <div class="flex items-center justify-between mb-1">
+              <span class="text-[11px] uppercase tracking-wider font-semibold text-text-tertiary">Stressed Canopy</span>
+              <span class="w-2.5 h-2.5 rounded-full bg-health-stressed beacon-ping"></span>
+            </div>
+            <div class="flex items-baseline gap-2 mt-1">
+              <span id="kpi-stressed-pct" class="font-heading font-bold text-3xl text-health-stressed leading-none">11%</span>
+              <span id="kpi-stressed-ha" class="font-mono text-xs text-text-secondary font-medium">230 ha</span>
+            </div>
+            <div class="mt-3 pt-2 border-t border-border-subtle flex items-center justify-between">
+              <span class="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-health-stressed-bg text-health-stressed text-xs font-bold">
+                Action Flagged
+              </span>
+              <span class="text-xs text-text-secondary">Sectors 3 & 4</span>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- LOWER ROW: TEMPORAL CHART & STRESS/ACTION INSIGHTS -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 mb-4">
+          
+          <!-- Left Column: Temporal Analysis Chart (7 cols) -->
+          <div class="lg:col-span-7 bg-surface-card rounded-xl p-5 sm:p-6 shadow-sm border border-border-subtle flex flex-col justify-between">
+            
+            <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+              <div>
+                <h2 class="font-heading font-bold text-base text-text-primary">Crop Health Over Time</h2>
+                <p class="text-xs text-text-secondary mt-0.5">Mean spectral index progression across Sentinel-2 overpasses</p>
+              </div>
+
+              <!-- Legend Indicators -->
+              <div class="flex items-center gap-4">
+                <div class="flex items-center gap-1.5">
+                  <span class="w-4 h-1 bg-primary rounded-full"></span>
+                  <span class="text-xs text-text-primary font-semibold">Current (2024)</span>
+                </div>
+                <div class="flex items-center gap-1.5">
+                  <span class="w-4 h-0.5 border-t-2 border-dashed border-gray-400"></span>
+                  <span class="text-xs text-text-secondary font-medium">Baseline (2023)</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- SVG Trend Line Chart -->
+            <div class="relative w-full h-56 pt-2">
+              <svg class="w-full h-full overflow-visible" preserveAspectRatio="none" viewBox="0 0 540 180">
+                <defs>
+                  <linearGradient id="chart-green-gradient" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stop-color="#1b4332" stop-opacity="0.22"></stop>
+                    <stop offset="100%" stop-color="#1b4332" stop-opacity="0.0"></stop>
+                  </linearGradient>
+                </defs>
+
+                <!-- Gridlines -->
+                <line x1="40" y1="20" x2="540" y2="20" stroke="#f4f3ef" stroke-width="1.5"></line>
+                <text x="32" y="24" fill="#9ca3af" font-family="Inter" font-size="10" text-anchor="end">0.8</text>
+
+                <line x1="40" y1="65" x2="540" y2="65" stroke="#f4f3ef" stroke-width="1.5"></line>
+                <text x="32" y="69" fill="#9ca3af" font-family="Inter" font-size="10" text-anchor="end">0.6</text>
+
+                <line x1="40" y1="110" x2="540" y2="110" stroke="#f4f3ef" stroke-width="1.5"></line>
+                <text x="32" y="114" fill="#9ca3af" font-family="Inter" font-size="10" text-anchor="end">0.4</text>
+
+                <line x1="40" y1="155" x2="540" y2="155" stroke="#f4f3ef" stroke-width="1.5"></line>
+                <text x="32" y="159" fill="#9ca3af" font-family="Inter" font-size="10" text-anchor="end">0.2</text>
+
+                <!-- Baseline Dashed Path -->
+                <path id="chart-baseline-path" d="" fill="none" stroke="#9ca3af" stroke-width="2" stroke-dasharray="4,4"></path>
+
+                <!-- Current Area & Line Path -->
+                <path id="chart-current-area" d="" fill="url(#chart-green-gradient)"></path>
+                <path id="chart-current-path" d="" fill="none" stroke="#012d1d" stroke-width="2.5"></path>
+
+                <!-- Interactive Markers Group -->
+                <g id="chart-markers-group"></g>
+
+                <!-- Floating Tooltip Group -->
+                <g id="chart-tooltip-group" style="opacity: 0; transition: all 0.2s ease;">
+                  <rect x="0" y="0" width="105" height="32" rx="4" fill="#151c27" opacity="0.95"></rect>
+                  <text id="chart-tooltip-date" x="52" y="13" fill="#ebf1ff" font-family="Inter" font-size="9" font-weight="600" text-anchor="middle">DATE</text>
+                  <text id="chart-tooltip-val" x="52" y="25" fill="#a1f4c8" font-family="Plus Jakarta Sans" font-size="10" font-weight="700" text-anchor="middle">VALUE</text>
+                  <polygon points="52,32 48,36 56,36" fill="#151c27" opacity="0.95"></polygon>
+                </g>
+              </svg>
+            </div>
+
+            <!-- Chart X-Axis Labels -->
+            <div id="chart-x-labels" class="flex items-center justify-between pl-8 pr-2 mt-2 font-mono text-xs text-text-tertiary">
+              <!-- Dynamically populated -->
+            </div>
+
+          </div>
+
+          <!-- Right Column: Stress Diagnostics & Decision Support (5 cols) -->
+          <div class="lg:col-span-5 flex flex-col gap-4">
+            
+            <!-- Potential Stress Areas Card -->
+            <div class="bg-surface-card rounded-xl p-5 shadow-sm border border-border-subtle">
+              <div class="flex items-start justify-between">
+                <div>
+                  <span class="text-[11px] uppercase tracking-wider font-semibold text-text-tertiary">Stress Diagnostics</span>
+                  <h3 class="font-heading font-bold text-base text-text-primary mt-0.5">Potential Stress Areas</h3>
+                </div>
+                <span id="stress-diag-aoi-pct" class="px-2.5 py-1 rounded-full bg-health-stressed-bg text-health-stressed font-mono text-xs font-bold border border-health-stressed-border">
+                  11% of AOI
+                </span>
+              </div>
+              <div class="mt-3 p-3.5 bg-surface-muted rounded-lg border border-border-subtle">
+                <div class="flex items-baseline justify-between">
+                  <span id="stress-diag-ha" class="font-heading font-bold text-lg text-health-stressed">230 Hectares</span>
+                  <span id="stress-diag-drop" class="text-xs font-semibold text-health-stressed">-0.16 index drop</span>
+                </div>
+                <p id="stress-diag-summary" class="text-xs text-text-secondary mt-1.5 leading-relaxed">
+                  Vegetation health has declined in southern parcel sectors 3 & 4 compared to baseline. Probable moisture deficit or localized canopy thinning.
+                </p>
+              </div>
+            </div>
+
+            <!-- Recommended Next Step Card (Prescriptive Decision Support) -->
+            <div class="bg-health-healthy-bg rounded-xl p-5 shadow-sm border border-health-healthy-border flex-1 flex flex-col justify-between">
+              <div>
+                <div class="flex items-center gap-2 mb-1.5">
+                  <span class="material-symbols-outlined text-[20px] text-health-healthy">task_alt</span>
+                  <h3 class="font-heading font-bold text-base text-health-healthy">Recommended Next Step</h3>
+                </div>
+                <p id="rec-card-lead" class="text-xs sm:text-sm text-health-healthy mt-2 leading-relaxed">
+                  Prioritize field inspection in highlighted <strong class="font-semibold underline">Sector 4</strong>. Verify irrigation emitter pressure, soil moisture depth, and inspect for early rust or stem rot.
+                </p>
+
+                <!-- Ground Investigation Parameters Chips -->
+                <div class="mt-3 flex flex-wrap gap-1.5">
+                  <span class="px-2 py-0.5 rounded bg-white/70 text-health-healthy text-[11px] font-medium border border-health-healthy-border">
+                    Irrigation
+                  </span>
+                  <span class="px-2 py-0.5 rounded bg-white/70 text-health-healthy text-[11px] font-medium border border-health-healthy-border">
+                    Rainfall (CHIRPS)
+                  </span>
+                  <span class="px-2 py-0.5 rounded bg-white/70 text-health-healthy text-[11px] font-medium border border-health-healthy-border">
+                    Crop Stage
+                  </span>
+                  <span class="px-2 py-0.5 rounded bg-white/70 text-health-healthy text-[11px] font-medium border border-health-healthy-border">
+                    Field Symptoms
+                  </span>
+                </div>
+              </div>
+
+              <!-- Scientific Transparency Notice -->
+              <div class="mt-4 pt-3 border-t border-health-healthy-border flex items-center gap-1.5 text-[11px] text-health-healthy/90">
+                <span class="material-symbols-outlined text-[15px]">info</span>
+                <span>Satellite indicators support prioritization and should be verified in the field.</span>
+              </div>
+            </div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- TAB VIEW 2: FIELDS CADASTRE LEDGER -->
+    <!-- ============================================================ -->
+    <div id="view-fields" class="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 flex flex-col gap-6 hidden">
+      
+      <div class="bg-surface-card rounded-xl shadow-sm border border-border-subtle p-6 flex flex-col gap-4">
+        <div class="flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <h2 class="font-heading font-bold text-xl text-primary">Agronomic Fields Cadastre</h2>
+            <p class="text-xs text-text-secondary mt-0.5">Comprehensive parcel-level multispectral index ledger & health statuses</p>
+          </div>
+          <button onclick="window.cropPulse.downloadCSV()" type="button" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-surface-muted hover:bg-surface-container text-text-primary rounded-lg border border-border-subtle text-xs font-semibold transition-colors">
+            <span class="material-symbols-outlined text-[16px]">file_download</span>
+            <span>Export CSV</span>
+          </button>
+        </div>
+
+        <div class="overflow-x-auto rounded-lg border border-border-subtle">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr class="bg-surface-muted text-text-secondary text-[11px] uppercase tracking-wider font-semibold border-b border-border-subtle">
+                <th class="py-3 px-4">Field Identifier</th>
+                <th class="py-3 px-4">Cultivated Crop</th>
+                <th class="py-3 px-4">Extent (Ha)</th>
+                <th class="py-3 px-4">Current Index</th>
+                <th class="py-3 px-4">Baseline Index</th>
+                <th class="py-3 px-4">Canopy Shift</th>
+                <th class="py-3 px-4">Physiological Class</th>
+                <th class="py-3 px-4 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody id="fields-table-body">
+              <!-- Dynamically populated in app.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ============================================================ -->
+    <!-- TAB VIEW 3: REPORTS & SCIENTIFIC AUDIT -->
+    <!-- ============================================================ -->
+    <div id="view-reports" class="w-full max-w-[1200px] mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 flex flex-col gap-6 hidden">
+      
+      <div class="bg-surface-card rounded-xl shadow-sm border border-border-subtle p-6 sm:p-8 flex flex-col gap-6">
+        
+        <!-- Report Header -->
+        <div class="flex flex-wrap items-start justify-between gap-4 pb-6 border-b border-border-subtle">
+          <div>
+            <span class="text-xs font-mono uppercase tracking-wider text-secondary font-bold">CropPulse Earth Observation Division</span>
+            <h1 id="report-aoi-name" class="font-heading font-bold text-2xl text-primary mt-1">Central Valley Quad 4B</h1>
+            <p id="report-region-name" class="text-xs text-text-secondary mt-1">San Joaquin Valley, California • Sentinel-2 Tile T11SPA</p>
+          </div>
+          <div class="flex items-center gap-3">
+            <span id="report-generated-date" class="text-xs text-text-tertiary font-mono">May 18, 2024</span>
+            <button onclick="window.print()" type="button" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary-container hover:bg-secondary text-white rounded-lg text-xs font-semibold transition-colors">
+              <span class="material-symbols-outlined text-[16px]">print</span>
+              <span>Print Report</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Executive Summary Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div class="p-4 bg-surface-canvas rounded-lg border border-border-subtle">
+            <span class="text-[11px] font-semibold uppercase text-text-tertiary block">Monitoring Scope</span>
+            <span class="font-heading font-bold text-lg text-text-primary mt-1 block">2,090 Hectares</span>
+            <span class="text-xs text-text-secondary">8 Agronomic Cadastre Parcels</span>
+          </div>
+          <div class="p-4 bg-surface-canvas rounded-lg border border-border-subtle">
+            <span class="text-[11px] font-semibold uppercase text-text-tertiary block">Mean Biomass Index</span>
+            <span class="font-heading font-bold text-lg text-health-healthy mt-1 block">0.64 (+0.04 Shift)</span>
+            <span class="text-xs text-text-secondary">Above 2023 baseline average</span>
+          </div>
+          <div class="p-4 bg-surface-canvas rounded-lg border border-border-subtle">
+            <span class="text-[11px] font-semibold uppercase text-text-tertiary block">High Priority Area</span>
+            <span class="font-heading font-bold text-lg text-health-stressed mt-1 block">Sector 4 (230 Ha)</span>
+            <span class="text-xs text-health-stressed font-medium">-34.5% acute canopy drop</span>
+          </div>
+        </div>
+
+        <!-- Environmental & Rainfall Context (CHIRPS) -->
+        <div class="flex flex-col gap-2">
+          <h3 class="font-heading font-bold text-base text-text-primary">Supporting Environmental Context</h3>
+          <p class="text-xs text-text-secondary leading-relaxed">
+            Data integrated from Sentinel-2 MSI surface reflectance, Dynamic World 10m cropland masking, and CHIRPS daily precipitation records.
+          </p>
+          <div class="p-4 bg-surface-muted rounded-lg border border-border-subtle flex flex-col gap-2 text-xs">
+            <div class="flex justify-between py-1 border-b border-border-subtle/60">
+              <span class="text-text-secondary">CHIRPS 30-Day Rainfall Accumulation:</span>
+              <span class="font-mono font-semibold text-text-primary">14.2 mm (18% below seasonal average)</span>
+            </div>
+            <div class="flex justify-between py-1 border-b border-border-subtle/60">
+              <span class="text-text-secondary">ERA5-Land Mean Temperature:</span>
+              <span class="font-mono font-semibold text-text-primary">28.2°C (VPD: 2.4 kPa)</span>
+            </div>
+            <div class="flex justify-between py-1">
+              <span class="text-text-secondary">Dynamic World Cropland Confidence:</span>
+              <span class="font-mono font-semibold text-health-healthy">98.4% Agricultural Area Confirmed</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Prescriptive Directive -->
+        <div class="p-5 bg-health-healthy-bg rounded-lg border border-health-healthy-border flex flex-col gap-2">
+          <h4 class="font-heading font-bold text-sm text-health-healthy">Prescriptive Ground Scouting Directive</h4>
+          <p class="text-xs text-health-healthy leading-relaxed">
+            Immediate dispatch recommended to <strong>Sector 4</strong>. Scout coordinates: 36.772° N, 119.412° W. Verify lateral 4B line pressure, check root depth soil cores for water deficiency, and inspect flag leaves for stripe rust.
+          </p>
+        </div>
+
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- ============================================================ -->
+  <!-- CONTEXTUAL FIELD DETAIL DRAWER (Slide-out panel) -->
+  <!-- ============================================================ -->
+  <div id="field-drawer" class="fixed inset-y-0 right-0 w-full max-w-sm bg-surface-card shadow-2xl z-50 transform translate-x-full transition-transform duration-300 ease-in-out flex flex-col border-l border-border-subtle">
+    
+    <!-- Drawer Header -->
+    <div class="px-5 py-4 bg-surface-canvas border-b border-border-subtle flex items-center justify-between">
+      <div class="flex flex-col">
+        <span id="drawer-field-name" class="font-heading font-bold text-base text-text-primary">Field 04 • Sector South</span>
+        <span id="drawer-crop-name" class="text-xs text-text-secondary">Late Sown Wheat • 230 Hectares</span>
+      </div>
+      <button id="close-drawer-btn" type="button" class="w-8 h-8 rounded-lg flex items-center justify-center text-text-secondary hover:bg-surface-muted transition-colors">
+        <span class="material-symbols-outlined text-[20px]">close</span>
+      </button>
+    </div>
+
+    <!-- Drawer Scrollable Body -->
+    <div class="p-5 flex-1 overflow-y-auto flex flex-col gap-4">
+      
+      <!-- Physiological Status Pill -->
+      <div id="drawer-status-badge" class="p-3 bg-health-stressed-bg border border-health-stressed-border rounded-lg flex items-center justify-between">
+        <div>
+          <span class="block text-[10px] uppercase font-bold text-health-stressed tracking-wide">Physiological Status</span>
+          <span id="drawer-status-text" class="font-heading font-bold text-sm text-health-stressed">High Water / Biomass Stress</span>
+        </div>
+        <span id="drawer-status-icon" class="material-symbols-outlined text-health-stressed text-[28px]">error</span>
+      </div>
+
+      <!-- Comparison Metrics Grid -->
+      <div class="space-y-2 text-xs border border-border-subtle rounded-lg p-3 bg-surface-canvas">
+        <div class="flex items-center justify-between py-1 border-b border-border-subtle">
+          <span class="text-text-secondary">Current Spectral Index</span>
+          <span id="drawer-current-index" class="font-mono font-bold text-health-stressed">0.38</span>
+        </div>
+        <div class="flex items-center justify-between py-1 border-b border-border-subtle">
+          <span class="text-text-secondary">Baseline Reference Index</span>
+          <span id="drawer-baseline-index" class="font-mono text-text-secondary">0.58</span>
+        </div>
+        <div class="flex items-center justify-between py-1 border-b border-border-subtle">
+          <span class="text-text-secondary">Absolute Canopy Change</span>
+          <span id="drawer-change-pct" class="font-mono font-bold text-health-stressed">-34.5%</span>
+        </div>
+        <div class="flex items-center justify-between py-1 border-b border-border-subtle">
+          <span class="text-text-secondary">Moisture Stress Probability</span>
+          <span id="drawer-stress-prob" class="font-mono font-bold text-health-stressed">89%</span>
+        </div>
+        <div class="flex items-center justify-between py-1">
+          <span class="text-text-secondary">Observation Timestamp</span>
+          <span id="drawer-timestamp" class="font-mono text-text-secondary text-[11px]">May 16, 2024 (10:42 UTC)</span>
+        </div>
+      </div>
+
+      <!-- Field Scout Action Protocol -->
+      <div class="p-3.5 bg-surface-muted rounded-lg border border-border-subtle">
+        <span class="text-xs font-heading font-bold text-text-primary block mb-2">Ground Scout Protocol</span>
+        <ul id="drawer-protocol-list" class="text-text-secondary text-xs space-y-1.5 list-disc list-inside">
+          <!-- Dynamically populated -->
+        </ul>
+      </div>
+
+    </div>
+
+    <!-- Drawer Footer Actions -->
+    <div class="p-4 bg-surface-canvas border-t border-border-subtle flex items-center gap-2">
+      <button id="create-ticket-btn" type="button" class="flex-1 py-2 px-3 bg-primary-container text-white rounded-lg font-heading font-semibold text-xs hover:bg-secondary transition-colors text-center shadow-xs">
+        Create Scout Ticket
+      </button>
+      <button id="dismiss-drawer-btn" type="button" class="py-2 px-4 bg-surface-card border border-border-subtle text-text-secondary hover:text-text-primary rounded-lg text-xs font-semibold transition-colors shadow-xs">
+        Done
+      </button>
+    </div>
+
+  </div>
+
+  <!-- Drawer Backdrop -->
+  <div id="drawer-backdrop" class="fixed inset-0 bg-gray-950/40 backdrop-glass z-40 hidden transition-opacity"></div>
+
+  <!-- ============================================================ -->
+  <!-- MODAL: SATELLITE ANALYSIS LOADING SIMULATION -->
+  <!-- ============================================================ -->
+  <div id="loading-modal" class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-950/60 backdrop-glass hidden">
+    <div class="max-w-[480px] w-full bg-surface-card rounded-xl p-6 sm:p-7 shadow-2xl border border-border-subtle flex flex-col gap-4">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center gap-3">
+        <div class="w-8 h-8 rounded-lg bg-health-healthy-bg text-health-healthy flex items-center justify-center">
+          <span class="material-symbols-outlined text-[20px] animate-spin">sync</span>
+        </div>
+        <div>
+          <h3 class="font-heading font-bold text-base text-primary">Analyzing Crop Health...</h3>
+          <p class="text-xs text-text-secondary">Google Earth Engine Sentinel-2 Multi-spectral Pipeline</p>
+        </div>
+      </div>
+
+      <!-- Progress Bar -->
+      <div class="w-full bg-surface-muted h-2 rounded-full overflow-hidden mt-1">
+        <div id="loading-progress-bar" class="bg-secondary h-full rounded-full transition-all duration-300" style="width: 25%;"></div>
+      </div>
+
+      <!-- Current Step Description -->
+      <p id="loading-step-text" class="text-xs text-text-primary font-medium min-h-[36px]">
+        Retrieving Sentinel-2 MSI Multi-spectral Bands (B4, B8)...
+      </p>
+
+      <!-- Checklist -->
+      <div class="space-y-2 pt-2 border-t border-border-subtle text-xs">
+        <div class="flex items-center justify-between">
+          <span class="text-text-secondary">1. Sentinel-2 MSI 10m Retrieval</span>
+          <span id="step-1-icon" class="material-symbols-outlined text-[16px] text-health-healthy font-bold">check_circle</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-text-secondary">2. Cloud QA & Atmospheric Filtering</span>
+          <span id="step-2-icon" class="material-symbols-outlined text-[16px] text-text-tertiary">radio_button_unchecked</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-text-secondary">3. Spectral Vegetation Index Computation</span>
+          <span id="step-3-icon" class="material-symbols-outlined text-[16px] text-text-tertiary">radio_button_unchecked</span>
+        </div>
+        <div class="flex items-center justify-between">
+          <span class="text-text-secondary">4. Health Classification & Anomaly Mapping</span>
+          <span id="step-4-icon" class="material-symbols-outlined text-[16px] text-text-tertiary">radio_button_unchecked</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- MODAL: AOI SELECTION -->
+  <!-- ============================================================ -->
+  <div id="aoi-modal" class="modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-950/50 backdrop-glass hidden">
+    <div class="max-w-2xl w-full bg-surface-card rounded-xl p-6 shadow-2xl border border-border-subtle flex flex-col gap-4 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-3 border-b border-border-subtle">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-secondary text-[22px]">travel_explore</span>
+          <h3 class="font-heading font-bold text-lg text-primary">Select Agricultural Region (AOI)</h3>
+        </div>
+        <button data-close-modal="aoi-modal" type="button" class="w-8 h-8 rounded flex items-center justify-center text-text-secondary hover:bg-surface-muted transition-colors">
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+      </div>
+
+      <p class="text-xs text-text-secondary">Choose an agricultural demonstration region or enter custom coordinates:</p>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <!-- Preset 1 -->
+        <div onclick="window.cropPulse.selectAoi('central-valley')" class="p-4 rounded-xl border border-border-subtle hover:border-secondary hover:bg-surface-canvas cursor-pointer transition-all flex flex-col justify-between gap-2 shadow-xs group">
+          <div class="flex items-center justify-between">
+            <span class="font-heading font-bold text-sm text-text-primary group-hover:text-secondary">Central Valley Quad 4B</span>
+            <span class="text-[10px] font-mono bg-surface-muted px-2 py-0.5 rounded text-text-secondary">2,090 ha</span>
+          </div>
+          <p class="text-xs text-text-secondary">San Joaquin Valley, California • Winter Wheat & Alfalfa</p>
+          <span class="text-[11px] text-secondary font-semibold flex items-center gap-1">
+            Load Area <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+          </span>
+        </div>
+
+        <!-- Preset 2 -->
+        <div onclick="window.cropPulse.selectAoi('punjab-zone')" class="p-4 rounded-xl border border-border-subtle hover:border-secondary hover:bg-surface-canvas cursor-pointer transition-all flex flex-col justify-between gap-2 shadow-xs group">
+          <div class="flex items-center justify-between">
+            <span class="font-heading font-bold text-sm text-text-primary group-hover:text-secondary">Punjab Agro Zone 7</span>
+            <span class="text-[10px] font-mono bg-surface-muted px-2 py-0.5 rounded text-text-secondary">1,840 ha</span>
+          </div>
+          <p class="text-xs text-text-secondary">Ludhiana District, Punjab, India • Rabi Wheat & Mustard</p>
+          <span class="text-[11px] text-secondary font-semibold flex items-center gap-1">
+            Load Area <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+          </span>
+        </div>
+
+        <!-- Preset 3 -->
+        <div onclick="window.cropPulse.selectAoi('kansas-belt')" class="p-4 rounded-xl border border-border-subtle hover:border-secondary hover:bg-surface-canvas cursor-pointer transition-all flex flex-col justify-between gap-2 shadow-xs group">
+          <div class="flex items-center justify-between">
+            <span class="font-heading font-bold text-sm text-text-primary group-hover:text-secondary">Kansas Sector 12</span>
+            <span class="text-[10px] font-mono bg-surface-muted px-2 py-0.5 rounded text-text-secondary">2,450 ha</span>
+          </div>
+          <p class="text-xs text-text-secondary">Barton County, Kansas, USA • Grain Corn & Soybean</p>
+          <span class="text-[11px] text-secondary font-semibold flex items-center gap-1">
+            Load Area <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+          </span>
+        </div>
+
+        <!-- Preset 4 -->
+        <div onclick="window.cropPulse.selectAoi('nile-delta')" class="p-4 rounded-xl border border-border-subtle hover:border-secondary hover:bg-surface-canvas cursor-pointer transition-all flex flex-col justify-between gap-2 shadow-xs group">
+          <div class="flex items-center justify-between">
+            <span class="font-heading font-bold text-sm text-text-primary group-hover:text-secondary">Nile Delta Sector 3</span>
+            <span class="text-[10px] font-mono bg-surface-muted px-2 py-0.5 rounded text-text-secondary">1,620 ha</span>
+          </div>
+          <p class="text-xs text-text-secondary">Kafr El-Sheikh, Lower Egypt • Cotton & Berseem Clover</p>
+          <span class="text-[11px] text-secondary font-semibold flex items-center gap-1">
+            Load Area <span class="material-symbols-outlined text-[14px]">arrow_forward</span>
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- MODAL: DATE SELECTION -->
+  <!-- ============================================================ -->
+  <div id="date-modal" class="modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-950/50 backdrop-glass hidden">
+    <div class="max-w-md w-full bg-surface-card rounded-xl p-6 shadow-2xl border border-border-subtle flex flex-col gap-4">
+      <div class="flex items-center justify-between pb-3 border-b border-border-subtle">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-secondary text-[22px]">date_range</span>
+          <h3 class="font-heading font-bold text-base text-primary">Temporal Analysis Windows</h3>
+        </div>
+        <button data-close-modal="date-modal" type="button" class="w-8 h-8 rounded flex items-center justify-center text-text-secondary hover:bg-surface-muted transition-colors">
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+      </div>
+
+      <div class="space-y-2">
+        <button type="button" data-date-preset="preset-1" data-current-val="May 01 – May 18, 2024" data-baseline-val="May 01 – May 18, 2023" class="w-full text-left p-3 rounded-lg border border-border-subtle hover:bg-surface-muted transition-colors flex justify-between items-center text-xs">
+          <div>
+            <span class="font-bold text-text-primary block">Seasonal Peak Heading (Spring)</span>
+            <span class="text-text-secondary">May 01 – May 18, 2024 vs May 2023</span>
+          </div>
+          <span class="material-symbols-outlined text-secondary text-[18px]">check</span>
+        </button>
+
+        <button type="button" data-date-preset="preset-2" data-current-val="Feb 15 – Mar 05, 2024" data-baseline-val="Feb 15 – Mar 05, 2023" class="w-full text-left p-3 rounded-lg border border-border-subtle hover:bg-surface-muted transition-colors flex justify-between items-center text-xs">
+          <div>
+            <span class="font-bold text-text-primary block">Rabi Season Grain Fill</span>
+            <span class="text-text-secondary">Feb 15 – Mar 05, 2024 vs Feb 2023</span>
+          </div>
+        </button>
+
+        <button type="button" data-date-preset="preset-3" data-current-val="Jul 10 – Jul 28, 2024" data-baseline-val="Jul 10 – Jul 28, 2023" class="w-full text-left p-3 rounded-lg border border-border-subtle hover:bg-surface-muted transition-colors flex justify-between items-center text-xs">
+          <div>
+            <span class="font-bold text-text-primary block">Mid-Summer Silking Window</span>
+            <span class="text-text-secondary">Jul 10 – Jul 28, 2024 vs Jul 2023</span>
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- MODAL: SETTINGS (CONFIGURABLE THRESHOLDS) -->
+  <!-- ============================================================ -->
+  <div id="settings-modal" class="modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-950/50 backdrop-glass hidden">
+    <div class="max-w-md w-full bg-surface-card rounded-xl p-6 shadow-2xl border border-border-subtle flex flex-col gap-4">
+      <div class="flex items-center justify-between pb-3 border-b border-border-subtle">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-secondary text-[22px]">tune</span>
+          <h3 class="font-heading font-bold text-base text-primary">Classification Settings</h3>
+        </div>
+        <button data-close-modal="settings-modal" type="button" class="w-8 h-8 rounded flex items-center justify-center text-text-secondary hover:bg-surface-muted transition-colors">
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+      </div>
+
+      <p class="text-xs text-text-secondary">
+        As defined in PRD Section 9 (FR-08), thresholds are configurable to suit diverse crop phenologies, regions, and seasonal baselines:
+      </p>
+
+      <div class="space-y-3 text-xs">
+        <div>
+          <label class="font-semibold text-text-primary block mb-1">Healthy Threshold (NDVI &gt;=)</label>
+          <input id="threshold-healthy-input" type="number" step="0.05" min="0.5" max="0.9" value="0.65" class="w-full h-9 px-3 bg-surface-canvas rounded border border-border-subtle font-mono text-sm focus:outline-none focus:border-secondary" />
+        </div>
+        <div>
+          <label class="font-semibold text-text-primary block mb-1">Stressed Threshold (NDVI &lt;=)</label>
+          <input id="threshold-stressed-input" type="number" step="0.05" min="0.2" max="0.55" value="0.45" class="w-full h-9 px-3 bg-surface-canvas rounded border border-border-subtle font-mono text-sm focus:outline-none focus:border-secondary" />
+        </div>
+      </div>
+
+      <div class="pt-3 border-t border-border-subtle flex justify-end gap-2">
+        <button data-close-modal="settings-modal" type="button" class="px-3 py-1.5 rounded text-xs text-text-secondary hover:bg-surface-muted">
+          Cancel
+        </button>
+        <button id="save-thresholds-btn" type="button" class="px-4 py-1.5 bg-primary-container hover:bg-secondary text-white rounded text-xs font-semibold">
+          Apply Thresholds
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- MODAL: EXPORT DATA -->
+  <!-- ============================================================ -->
+  <div id="export-modal" class="modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-950/50 backdrop-glass hidden">
+    <div class="max-w-md w-full bg-surface-card rounded-xl p-6 shadow-2xl border border-border-subtle flex flex-col gap-4">
+      <div class="flex items-center justify-between pb-3 border-b border-border-subtle">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-secondary text-[22px]">download</span>
+          <h3 class="font-heading font-bold text-base text-primary">Export Geospatial Intelligence</h3>
+        </div>
+        <button data-close-modal="export-modal" type="button" class="w-8 h-8 rounded flex items-center justify-center text-text-secondary hover:bg-surface-muted transition-colors">
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+      </div>
+
+      <p class="text-xs text-text-secondary">Export analysis outputs for QGIS, ArcGIS, or agronomic record keeping:</p>
+
+      <div class="space-y-2">
+        <button id="export-geojson-btn" type="button" class="w-full text-left p-3 rounded-lg border border-border-subtle hover:bg-surface-muted transition-colors flex items-center gap-3 text-xs">
+          <span class="material-symbols-outlined text-secondary text-[22px]">public</span>
+          <div>
+            <span class="font-bold text-text-primary block">GeoJSON Parcel Callset</span>
+            <span class="text-text-secondary">WGS84 polygons with NDVI, NDRE & stress scores</span>
+          </div>
+        </button>
+
+        <button id="export-csv-btn" type="button" class="w-full text-left p-3 rounded-lg border border-border-subtle hover:bg-surface-muted transition-colors flex items-center gap-3 text-xs">
+          <span class="material-symbols-outlined text-secondary text-[22px]">table_view</span>
+          <div>
+            <span class="font-bold text-text-primary block">Agronomic Metrics CSV</span>
+            <span class="text-text-secondary">Tabular field breakdown, hectares & phenology shifts</span>
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- MODAL: SCOUT TICKET CREATION -->
+  <!-- ============================================================ -->
+  <div id="ticket-modal" class="modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4 bg-gray-950/50 backdrop-glass hidden">
+    <div class="max-w-md w-full bg-surface-card rounded-xl p-6 shadow-2xl border border-border-subtle flex flex-col gap-4">
+      <div class="flex items-center justify-between pb-3 border-b border-border-subtle">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined text-health-healthy text-[22px]">assignment_turned_in</span>
+          <h3 class="font-heading font-bold text-base text-primary">Field Scout Ticket Generated</h3>
+        </div>
+        <button data-close-modal="ticket-modal" type="button" class="w-8 h-8 rounded flex items-center justify-center text-text-secondary hover:bg-surface-muted transition-colors">
+          <span class="material-symbols-outlined text-[20px]">close</span>
+        </button>
+      </div>
+
+      <div class="p-3 bg-surface-muted rounded-lg border border-border-subtle space-y-1 text-xs">
+        <div class="flex justify-between">
+          <span class="text-text-secondary">Ticket Identifier:</span>
+          <span id="ticket-modal-id" class="font-mono font-bold text-primary">TK-2024-5821</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-text-secondary">Inspection Target:</span>
+          <span id="ticket-target-field" class="font-semibold text-text-primary">Field 04 • Sector South</span>
+        </div>
+        <div class="flex justify-between">
+          <span class="text-text-secondary">Priority Level:</span>
+          <span class="font-bold text-health-stressed uppercase">Immediate (P1 High Stress)</span>
+        </div>
+      </div>
+
+      <div class="text-xs space-y-1">
+        <span class="font-semibold text-text-primary block">Scouting Checklist:</span>
+        <ul id="ticket-protocol-preview" class="list-disc list-inside text-text-secondary space-y-1">
+          <!-- Dynamically populated -->
+        </ul>
+      </div>
+
+      <div class="pt-3 border-t border-border-subtle flex justify-end gap-2">
+        <button data-close-modal="ticket-modal" type="button" class="px-4 py-1.5 bg-primary-container hover:bg-secondary text-white rounded text-xs font-semibold">
+          Confirm & Dispatch
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- TOAST NOTIFICATIONS CONTAINER -->
+  <!-- ============================================================ -->
+  <div id="toast-container"></div>
+
+  <!-- ============================================================ -->
+  <!-- FOOTER -->
+  <!-- ============================================================ -->
+  <footer class="w-full bg-surface-card border-t border-border-subtle py-3 mt-auto">
+    <div class="w-full max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8 flex flex-col sm:flex-row items-center justify-between gap-2 text-center sm:text-left text-xs text-text-secondary">
+      <div class="flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-health-healthy"></span>
+        <span>Sentinel-2 Multispectral MSI • Surface Reflectance (10m Resolution)</span>
+      </div>
+      <div class="font-mono text-[11px] text-text-tertiary">
+        CropPulse © 2025 • Agricultural Sustainability Domain (Domain 3.1)
+      </div>
+    </div>
+  </footer>
+
+  <!-- Leaflet JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  
+  <!-- Main Application Logic -->
+  <script src="app.js"></script>
+</body>
+</html>
